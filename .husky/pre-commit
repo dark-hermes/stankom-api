@@ -7,7 +7,4 @@ if [ -z "$HUSKY_SKIP_INSTALL" ]; then
 	[ -f "$(dirname "$0")/_/husky.sh" ] && . "$(dirname "$0")/_/husky.sh"
 fi
 
-# Debug echo helps confirm hook execution on Windows/CI
-echo "husky pre-commit: running lint-staged..."
-
 npx lint-staged
