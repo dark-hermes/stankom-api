@@ -28,3 +28,5 @@ import { GalleryModule } from './gallery/gallery.module';
   providers: [],
 })
 export class AppModule {}
+
+// NOTE: harmless whitespace/comment change to trigger husky pre-commit test
