@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum untuk status berita
+enum NewsStatus {
+  draft
+  published
+  archived
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  newsCategories NewsCategory[]
+  news           News[]
+  announcements  Announcement[]
+
+  newsCategoriesUpdated NewsCategory[] @relation("NewsCategoryUpdatedBy")
+  newsUpdated           News[]         @relation("NewsUpdatedBy")
+  announcementsUpdated  Announcement[] @relation("AnnouncementUpdatedBy")
+}
+
+model HeroSection {
+  id         Int     @id @default(autoincrement())
+  heading    String
+  subHeading String
+  pathVideo  String? @db.Text
+  banner     String  @db.Text
+}
+
+model StatisticCategory {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  statistics Statistic[]
+}
+
+model Statistic {
+  id     Int    @id @default(autoincrement())
+  name   String
+  number Int
+  symbol String
+  icon   String @db.Text
+
+  categoryId Int
+  category   StatisticCategory @relation(fields: [categoryId], references: [id])
+}
+
+model History {
+  id    Int    @id @default(autoincrement())
+  image String @db.Text
+}
+
+model VisionMission {
+  id    Int    @id @default(autoincrement())
+  image String @db.Text
+}
+
+model Structure {
+  id    Int    @id @default(autoincrement())
+  image String @db.Text
+}
+
+model DirectorProfile {
+  id     Int    @id @default(autoincrement())
+  name   String
+  period String
+  detail String @db.Text
+  pict   String @db.Text
+}
+
+model NewsCategory {
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  updatedById Int?
+  updatedBy   User? @relation("NewsCategoryUpdatedBy", fields: [updatedById], references: [id])
+
+  news News[]
+}
+
+model News {
+  id          Int        @id @default(autoincrement())
+  title       String
+  slug        String     @unique
+  excerpt     String
+  description String     @db.Text
+  image       String?    @db.Text
+  status      NewsStatus @default(draft)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  categoryId Int
+  category   NewsCategory @relation(fields: [categoryId], references: [id])
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  updatedById Int?
+  updatedBy   User? @relation("NewsUpdatedBy", fields: [updatedById], references: [id])
+
+  // Many-to-Many
+  tags NewsTag[]
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  slug String @unique
+
+  news NewsTag[]
+}
+
+model NewsTag {
+  newsId Int
+  tagId  Int
+  news   News @relation(fields: [newsId], references: [id])
+  tag    Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([newsId, tagId]) // Composite primary key
+}
+
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  attachment  String?  @db.Text // URL atau path ke file
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  updatedById Int?
+  updatedBy   User? @relation("AnnouncementUpdatedBy", fields: [updatedById], references: [id])
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  icon        String   @db.Text
+  resource    String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Gallery {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?  @db.Text
+  pict        String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Faq {
+  id       Int    @id @default(autoincrement())
+  question String
+  answer   String @db.Text
+}
