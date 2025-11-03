@@ -57,4 +57,9 @@ export class UpdateNewsDto {
   @IsArray()
   @IsInt({ each: true })
   tagIds?: number[];
+
+  // This field is auto-populated by AuditInterceptor
+  @IsOptional()
+  @IsInt()
+  updatedById?: number;
 }

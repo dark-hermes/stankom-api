@@ -17,7 +17,9 @@ import { Observable } from 'rxjs';
 export class AuditInterceptor implements NestInterceptor {
   // Paths without /api/v1 prefix for normalized matching
   private readonly entitiesWithUpdatedBy = [
+    '/news',
     '/news/categories',
+    '/announcements',
     // Add other entities that have updatedById field here
   ];
   private readonly entitiesWithCreatedBy = [

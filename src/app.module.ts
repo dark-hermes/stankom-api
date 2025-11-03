@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { StorageModule } from './storage/storage.module';
 import { UsersModule } from './users/users.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { GalleryModule } from './gallery/gallery.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     NewsModule,
     StorageModule,
     AnnouncementsModule,
+    GalleryModule,
   ],
   controllers: [],
   providers: [],

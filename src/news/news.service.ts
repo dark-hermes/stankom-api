@@ -153,8 +153,16 @@ export class NewsService {
     const existing = await this.prisma.news.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('News not found');
 
-    const { tagIds, status, title, excerpt, description, image, categoryId } =
-      dto;
+    const {
+      tagIds,
+      status,
+      title,
+      excerpt,
+      description,
+      image,
+      categoryId,
+      updatedById,
+    } = dto;
 
     // Auto-generate unique slug from title if title is being updated
     let slug: string | undefined = undefined;
@@ -211,6 +219,9 @@ export class NewsService {
       ...(status ? { status: status as NewsStatus } : {}),
       ...(categoryId !== undefined
         ? { category: { connect: { id: categoryId } } }
+        : {}),
+      ...(updatedById !== undefined
+        ? { updatedBy: { connect: { id: updatedById } } }
         : {}),
     } as Prisma.NewsUpdateInput;
 

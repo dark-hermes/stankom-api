@@ -172,9 +172,18 @@ model Gallery {
   id          Int      @id @default(autoincrement())
   title       String
   description String?  @db.Text
-  pict        String   @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  images GalleryImage[]
+}
+
+model GalleryImage {
+  id        Int    @id @default(autoincrement())
+  galleryId Int
+  image     String @db.Text
+
+  gallery Gallery @relation(fields: [galleryId], references: [id])
 }
 
 model Faq {
