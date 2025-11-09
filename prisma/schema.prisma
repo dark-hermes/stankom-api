@@ -28,13 +28,19 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  newsCategories NewsCategory[]
-  news           News[]
-  announcements  Announcement[]
+  newsCategories   NewsCategory[]
+  news             News[]
+  announcements    Announcement[]
+  socialMediaPosts SocialMediaPost[]
+  faqs             Faq[]
+  services         Service[]
 
-  newsCategoriesUpdated NewsCategory[] @relation("NewsCategoryUpdatedBy")
-  newsUpdated           News[]         @relation("NewsUpdatedBy")
-  announcementsUpdated  Announcement[] @relation("AnnouncementUpdatedBy")
+  newsCategoriesUpdated   NewsCategory[]    @relation("NewsCategoryUpdatedBy")
+  newsUpdated             News[]            @relation("NewsUpdatedBy")
+  announcementsUpdated    Announcement[]    @relation("AnnouncementUpdatedBy")
+  socialMediaPostsUpdated SocialMediaPost[] @relation("SocialMediaPostUpdatedBy")
+  faqsUpdated             Faq[]             @relation("FaqUpdatedBy")
+  servicesUpdated         Service[]         @relation("ServiceUpdatedBy")
 }
 
 model HeroSection {
@@ -43,47 +49,70 @@ model HeroSection {
   subHeading String
   pathVideo  String? @db.Text
   banner     String  @db.Text
+
+  updatedAt DateTime @updatedAt
 }
 
 model StatisticCategory {
-  id   Int    @id @default(autoincrement())
+  id   Int     @id @default(autoincrement())
   name String
+  link String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   statistics Statistic[]
 }
 
 model Statistic {
-  id     Int    @id @default(autoincrement())
+  id     Int     @id @default(autoincrement())
   name   String
   number Int
-  symbol String
-  icon   String @db.Text
+  link   String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   categoryId Int
   category   StatisticCategory @relation(fields: [categoryId], references: [id])
 }
 
 model History {
-  id    Int    @id @default(autoincrement())
-  image String @db.Text
+  id          Int    @id @default(autoincrement())
+  year        Int
+  description String
+  detail      String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model VisionMission {
-  id    Int    @id @default(autoincrement())
-  image String @db.Text
+model RolesResponsibilities {
+  id               Int    @id @default(autoincrement())
+  roles            String @db.Text
+  responsibilities String @db.Text
+
+  updatedAt DateTime @updatedAt
 }
 
 model Structure {
   id    Int    @id @default(autoincrement())
   image String @db.Text
+
+  updatedAt DateTime @updatedAt
 }
 
 model DirectorProfile {
-  id     Int    @id @default(autoincrement())
-  name   String
-  period String
-  detail String @db.Text
-  pict   String @db.Text
+  id        Int    @id @default(autoincrement())
+  order     Int
+  beginYear Int
+  endYear   Int?
+  name      String
+  detail    String @db.Text
+  picture   String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model NewsCategory {
@@ -131,6 +160,9 @@ model Tag {
   name String @unique
   slug String @unique
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   news NewsTag[]
 }
 
@@ -159,13 +191,20 @@ model Announcement {
 }
 
 model Service {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
-  description String   @db.Text
-  icon        String   @db.Text
-  resource    String   @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String  @db.Text
+  icon        String  @db.Text
+  link        String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  updatedById Int?
+  updatedBy   User? @relation("ServiceUpdatedBy", fields: [updatedById], references: [id])
 }
 
 model Gallery {
@@ -190,4 +229,43 @@ model Faq {
   id       Int    @id @default(autoincrement())
   question String
   answer   String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdById Int
+  createdBy   User  @relation(fields: [createdById], references: [id])
+  updatedById Int?
+  updatedBy   User? @relation("FaqUpdatedBy", fields: [updatedById], references: [id])
+}
+
+enum SocialMediaType {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TIKTOK
+  YOUTUBE
+}
+
+model SocialMedia {
+  id   Int             @id @default(autoincrement())
+  name SocialMediaType @unique
+  link String          @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SocialMediaPost {
+  id       Int             @id @default(autoincrement())
+  platform SocialMediaType
+  postLink String          @db.Text
+  image    String          @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById Int
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  updatedById Int?
+  updatedBy   User?    @relation("SocialMediaPostUpdatedBy", fields: [updatedById], references: [id])
 }

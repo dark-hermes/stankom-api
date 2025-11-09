@@ -34,8 +34,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
-import { MulterExceptionFilter } from '../common/filters/multer-exception.filter';
 import { SuccessResponseDto } from '../common/dto/success-response.dto';
+import { MulterExceptionFilter } from '../common/filters/multer-exception.filter';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
 import { StorageService } from '../storage/storage.service';
 import { CreateGalleryDto } from './dto/create-gallery.dto';

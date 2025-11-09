@@ -23,6 +23,39 @@ async function main() {
   });
 
   console.log(`Seeded user: ${email} (password: ${plainPassword})`);
+
+  // Ensure RolesResponsibilities singleton exists
+  const rrExisting = await prisma.rolesResponsibilities.findFirst();
+  if (!rrExisting) {
+    await prisma.rolesResponsibilities.create({
+      data: {
+        roles: 'Initial roles description',
+        responsibilities: 'Initial responsibilities description',
+      },
+    });
+    console.log('Seeded RolesResponsibilities default row.');
+  }
+
+  // Ensure Structure singleton exists
+  const structureExisting = await prisma.structure.findFirst();
+  if (!structureExisting) {
+    await prisma.structure.create({ data: { image: '' } });
+    console.log('Seeded Structure default row.');
+  }
+
+  // Ensure HeroSection singleton exists
+  const heroExisting = await prisma.heroSection.findFirst();
+  if (!heroExisting) {
+    await prisma.heroSection.create({
+      data: {
+        heading: 'Initial Heading',
+        subHeading: 'Initial Sub Heading',
+        banner: '',
+        pathVideo: null,
+      },
+    });
+    console.log('Seeded HeroSection default row.');
+  }
 }
 
 main()

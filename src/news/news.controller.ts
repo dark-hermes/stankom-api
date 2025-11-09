@@ -302,7 +302,6 @@ export class NewsController {
     // Upload image if provided
     if (file) {
       this.logger.log(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         `Uploading image during news creation: ${file.originalname}`,
       );
       const imageUrl = await this.storageService.uploadFile(file, 'news/');
@@ -425,7 +424,6 @@ export class NewsController {
     // Upload new image if provided
     if (file) {
       this.logger.log(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         `Uploading new image for news ID ${id}: ${file.originalname}`,
       );
       const imageUrl = await this.storageService.uploadFile(file, 'news/');
@@ -510,7 +508,6 @@ export class NewsController {
     )
     file: Express.Multer.File,
   ): Promise<{ message: string; url: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     this.logger.log(`Uploading image for news ID ${id}: ${file.originalname}`);
 
     // Verify news exists

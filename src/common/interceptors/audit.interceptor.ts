@@ -20,12 +20,18 @@ export class AuditInterceptor implements NestInterceptor {
     '/news',
     '/news/categories',
     '/announcements',
+    '/faq',
+    '/services',
+    '/social-media-posts',
     // Add other entities that have updatedById field here
   ];
   private readonly entitiesWithCreatedBy = [
     '/news',
     '/news/categories',
     '/announcements',
+    '/faq',
+    '/services',
+    '/social-media-posts',
     // Add other entities that have createdById field here
   ];
 

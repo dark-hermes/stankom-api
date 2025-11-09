@@ -34,7 +34,7 @@ export class StorageService {
     // dynamically import uuid to avoid ESM static import issues in tests
 
     const { v4: uuidv4 } = await import('uuid');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+
     const uniqueFilename = `${uuidv4()}-${file.originalname.replace(/\s/g, '_')}`;
     const destination = `${pathPrefix}${uniqueFilename}`;
 
@@ -43,7 +43,7 @@ export class StorageService {
     return new Promise((resolve, reject) => {
       const blobStream = blob.createWriteStream({
         resumable: false,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         contentType: file.mimetype,
       });
 
@@ -60,7 +60,6 @@ export class StorageService {
         resolve(publicUrl);
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       blobStream.end(file.buffer);
     });
   }

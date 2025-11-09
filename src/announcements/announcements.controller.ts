@@ -17,6 +17,7 @@ import {
   Query,
   Req,
   UploadedFile,
+  UseFilters,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -34,6 +35,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
 import { SuccessResponseDto } from '../common/dto/success-response.dto';
+import { MulterExceptionFilter } from '../common/filters/multer-exception.filter';
 import { AuditInterceptor } from '../common/interceptors/audit.interceptor';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
 import { StorageService } from '../storage/storage.service';
@@ -46,6 +48,7 @@ import { UpdateAnnouncementDto } from './dto/update-announcement.dto';
 @ApiCookieAuth()
 @Controller('announcements')
 @UseGuards(JwtAuthGuard)
+@UseFilters(MulterExceptionFilter)
 @UseInterceptors(AuditInterceptor)
 export class AnnouncementsController {
   private readonly logger = new Logger(AnnouncementsController.name);

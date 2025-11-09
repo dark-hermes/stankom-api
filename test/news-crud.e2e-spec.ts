@@ -1,15 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { INestApplication } from '@nestjs/common';
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
+import type { News, NewsCategory, Tag } from '@prisma/client';
 import request from 'supertest';
 import { JwtAuthGuard } from '../src/auth/guards/jwt.guard';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { StorageService } from '../src/storage/storage.service';
 import { AppModule } from './../src/app.module';
+import { asApiResponse } from './utils/api-response';
 
-import { MockAuthGuard } from './utils/mock-auth.guard';
+import { MockAuthGuard, setMockUser } from './utils/mock-auth.guard';
 
 describe('News, Category, Tag CRUD (e2e)', () => {
   let app: INestApplication;
+  let prisma: PrismaService;
 
   beforeAll(async () => {
     const moduleBuilder = Test.createTestingModule({
@@ -27,6 +31,8 @@ describe('News, Category, Tag CRUD (e2e)', () => {
 
     const moduleFixture: TestingModule = await moduleBuilder.compile();
 
+    prisma = moduleFixture.get<PrismaService>(PrismaService);
+
     app = moduleFixture.createNestApplication();
     // also set global guard to ensure request.user is present for non-overridden paths
     app.useGlobalGuards(new MockAuthGuard());
@@ -41,19 +47,26 @@ describe('News, Category, Tag CRUD (e2e)', () => {
     const title = `Category ${Date.now()}`;
     const slug = `category-${Date.now()}`;
 
+    const userEmail = `e2e-news-${Date.now()}@example.com`;
+    const createdUser = await prisma.user.upsert({
+      where: { email: userEmail },
+      create: { name: 'E2E News User', email: userEmail, password: 'password' },
+      update: {},
+    });
+
+    setMockUser({ id: createdUser.id, email: createdUser.email });
+
     // Create
     const createRes = await request(app.getHttpServer())
       .post('/news/categories')
       .send({ title, slug })
       .expect(201);
 
-    expect(createRes.body).toHaveProperty('message');
-    expect(createRes.body).toHaveProperty('data');
-    const category = createRes.body.data;
+    const category = asApiResponse<NewsCategory>(createRes).data;
     expect(category).toHaveProperty('id');
     expect(category.title).toBe(title);
     // createdById should be auto-populated by interceptor
-    expect(category.createdById).toBe(2);
+    expect(category.createdById).toBe(createdUser.id);
 
     const categoryId = category.id;
 
@@ -64,11 +77,10 @@ describe('News, Category, Tag CRUD (e2e)', () => {
       .send({ title: updatedTitle })
       .expect(200);
 
-    expect(updateRes.body).toHaveProperty('message');
-    const updated = updateRes.body.data;
+    const updated = asApiResponse<NewsCategory>(updateRes).data;
     expect(updated.title).toBe(updatedTitle);
     // updatedById should be set for categories
-    expect(updated.updatedById).toBe(2);
+    expect(updated.updatedById).toBe(createdUser.id);
 
     // Delete
     await request(app.getHttpServer())
@@ -85,8 +97,7 @@ describe('News, Category, Tag CRUD (e2e)', () => {
       .post('/news/tags')
       .send({ name, slug })
       .expect(201);
-
-    const tag = createRes.body.data;
+    const tag = asApiResponse<Tag>(createRes).data;
     expect(tag).toHaveProperty('id');
     expect(tag.name).toBe(name);
 
@@ -98,8 +109,7 @@ describe('News, Category, Tag CRUD (e2e)', () => {
       .put(`/news/tags/${tagId}`)
       .send({ name: newName })
       .expect(200);
-
-    expect(updateRes.body.data.name).toBe(newName);
+    expect(asApiResponse<Tag>(updateRes).data.name).toBe(newName);
 
     // Delete
     await request(app.getHttpServer())
@@ -113,13 +123,13 @@ describe('News, Category, Tag CRUD (e2e)', () => {
       .post('/news/categories')
       .send({ title: `TmpCat ${Date.now()}`, slug: `tmpcat-${Date.now()}` })
       .expect(201);
-    const categoryId = cRes.body.data.id;
+    const categoryId = asApiResponse<NewsCategory>(cRes).data.id;
 
     const tRes = await request(app.getHttpServer())
       .post('/news/tags')
       .send({ name: `TmpTag ${Date.now()}`, slug: `tmptag-${Date.now()}` })
       .expect(201);
-    const tagId = tRes.body.data.id;
+    const tagId = asApiResponse<Tag>(tRes).data.id;
 
     const payload = {
       title: `E2E News ${Date.now()}`,
@@ -137,14 +147,13 @@ describe('News, Category, Tag CRUD (e2e)', () => {
       .post('/news')
       .send(payload)
       .expect(201);
-
-    const news = createRes.body.data;
+    const news = asApiResponse<News>(createRes).data;
     expect(news).toHaveProperty('id');
     const newsId = news.id;
 
     // Get list
     const listRes = await request(app.getHttpServer()).get('/news').expect(200);
-    expect(listRes.body).toBeDefined();
+    expect(listRes.body).toBeDefined(); // list endpoint returns paginated shape, keep generic assertion
 
     // Update
     const newTitle = 'Updated News Title';
@@ -152,8 +161,7 @@ describe('News, Category, Tag CRUD (e2e)', () => {
       .put(`/news/${newsId}`)
       .send({ title: newTitle })
       .expect(200);
-
-    expect(updateRes.body.data.title).toBe(newTitle);
+    expect(asApiResponse<News>(updateRes).data.title).toBe(newTitle);
 
     // Delete
     await request(app.getHttpServer()).delete(`/news/${newsId}`).expect(200);
