@@ -1,4 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
+import { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
 import { StorageService } from '../storage/storage.service';
 import { NewsController } from './news.controller';
 import { NewsService } from './news.service';
@@ -18,6 +20,11 @@ describe('NewsController', () => {
     remove: jest.fn(),
     createCategory: jest.fn(),
     findAllCategories: jest.fn().mockResolvedValue({
+      data: [],
+      meta: { currentPage: 1, perPage: 10, totalItems: 0, totalPages: 0 },
+      links: { first: null, previous: null, next: null, last: null },
+    }),
+    findAllByCategory: jest.fn().mockResolvedValue({
       data: [],
       meta: { currentPage: 1, perPage: 10, totalItems: 0, totalPages: 0 },
       links: { first: null, previous: null, next: null, last: null },
@@ -57,5 +64,22 @@ describe('NewsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('should return paginated news by category id', async () => {
+    const req = {
+      protocol: 'http',
+      get: () => 'localhost',
+      baseUrl: '',
+    } as unknown as RequestWithBaseUrl;
+    const query: FilterSearchQueryDto = {} as FilterSearchQueryDto;
+
+    const res = await controller.findAllByCategory(1, req, query);
+    expect(res).toBeDefined();
+    expect(mockNewsService.findAllByCategory).toHaveBeenCalledWith(
+      1,
+      query,
+      req,
+    );
   });
 });

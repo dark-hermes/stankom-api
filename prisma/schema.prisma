@@ -260,7 +260,6 @@ model SocialMediaPost {
   id       Int             @id @default(autoincrement())
   platform SocialMediaType
   postLink String          @db.Text
-  image    String          @db.Text
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

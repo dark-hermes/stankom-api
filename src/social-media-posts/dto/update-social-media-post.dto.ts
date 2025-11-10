@@ -17,14 +17,6 @@ export class UpdateSocialMediaPostDto {
   @IsUrl({ require_tld: false })
   postLink?: string;
 
-  @ApiProperty({
-    description: 'Image URL for the social media post',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  image?: string;
-
   @ApiProperty({ required: false })
   @IsOptional()
   updatedById?: number;

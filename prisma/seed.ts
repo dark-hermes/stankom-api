@@ -259,7 +259,6 @@ async function main() {
     const posts = Array.from({ length: 9 }).map((_, i) => ({
       platform: 'INSTAGRAM' as SocialMediaType,
       postLink: `https://instagram.com/post${i + 1}`,
-      image: `insta-${i + 1}.jpg`,
       createdById: admin.id,
     }));
     await prisma.socialMediaPost.createMany({ data: posts });

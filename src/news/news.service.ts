@@ -136,6 +136,45 @@ export class NewsService {
     );
   }
 
+  async findAllByCategory(
+    categoryId: number,
+    query: FilterSearchQueryDto,
+    req?: RequestWithBaseUrl,
+  ): Promise<PaginatedResponse<News>> {
+    const searchableFields = ['title', 'excerpt', 'description', 'slug'];
+    const where = createPrismaWhereClause<Prisma.NewsWhereInput>(
+      query,
+      searchableFields,
+    );
+
+    // Ensure category filter is applied
+    where.categoryId = categoryId;
+
+    const orderBy = createPrismaOrderByClause(query.sortBy);
+
+    const baseUrl = req
+      ? `${req.protocol}://${req.get('host')}${req.baseUrl}`
+      : null;
+
+    return paginate<News>(
+      this.prisma.news,
+      {
+        where,
+        orderBy,
+        include: {
+          tags: { include: { tag: true } },
+          category: true,
+          createdBy: true,
+        },
+      },
+      {
+        page: query.page,
+        limit: query.limit,
+        baseUrl,
+      },
+    );
+  }
+
   async findOne(id: number) {
     const item = await this.prisma.news.findUnique({
       where: { id },

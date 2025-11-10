@@ -106,6 +106,26 @@ export class NewsController {
     return this.newsService.findAllCategories(query, req);
   }
 
+  @Get('categories/:id/news')
+  @ApiOperation({ summary: 'Get all news by category ID with pagination' })
+  @ApiParam({ name: 'id', description: 'Category ID' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description:
+      'List of news articles for the category retrieved successfully',
+  })
+  findAllByCategory(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithBaseUrl,
+    @Query() query: FilterSearchQueryDto,
+  ) {
+    return this.newsService.findAllByCategory(id, query, req);
+  }
+
   @Put('categories/:id')
   @ApiOperation({ summary: 'Update news category' })
   @ApiParam({ name: 'id', description: 'Category ID' })

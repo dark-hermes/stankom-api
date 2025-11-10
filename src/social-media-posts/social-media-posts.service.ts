@@ -17,7 +17,7 @@ export class SocialMediaPostsService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateSocialMediaPostDto) {
-    const { platform, postLink, image, createdById } = dto;
+    const { platform, postLink, createdById } = dto;
 
     if (!createdById) {
       throw new Error('createdById is required');
@@ -26,7 +26,6 @@ export class SocialMediaPostsService {
     const data: Prisma.SocialMediaPostCreateInput = {
       platform,
       postLink,
-      image,
       createdBy: { connect: { id: createdById } },
     };
 
@@ -81,12 +80,11 @@ export class SocialMediaPostsService {
     });
     if (!existing) throw new NotFoundException('Social media post not found.');
 
-    const { platform, postLink, image, updatedById } = dto;
+    const { platform, postLink, updatedById } = dto;
 
     const data: Prisma.SocialMediaPostUpdateInput = {
       ...(platform !== undefined ? { platform } : {}),
       ...(postLink !== undefined ? { postLink } : {}),
-      ...(image !== undefined ? { image } : {}),
       ...(updatedById !== undefined
         ? { updatedBy: { connect: { id: updatedById } } }
         : {}),

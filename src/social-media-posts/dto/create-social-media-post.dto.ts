@@ -19,11 +19,6 @@ export class CreateSocialMediaPostDto {
   @IsUrl({ require_tld: false })
   postLink: string;
 
-  @ApiProperty({ description: 'Image URL for the social media post' })
-  @IsString()
-  @IsNotEmpty()
-  image: string;
-
   @ApiProperty({ required: false })
   @IsOptional()
   createdById?: number;

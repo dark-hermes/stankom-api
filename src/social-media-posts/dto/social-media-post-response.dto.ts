@@ -12,10 +12,6 @@ export class SocialMediaPostResponseDto {
 
   @ApiProperty()
   postLink: string;
-
-  @ApiProperty()
-  image: string;
-
   @ApiProperty()
   createdAt: Date;
 

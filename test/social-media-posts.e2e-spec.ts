@@ -40,7 +40,6 @@ describe('SocialMediaPosts CRUD (e2e)', () => {
     const payload = {
       platform: 'INSTAGRAM',
       postLink: `https://example.com/p/${Date.now()}`,
-      image: 'https://example.com/image.png',
     };
 
     const userEmail = `e2e-social-media-post-${Date.now()}@example.com`;

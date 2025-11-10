@@ -155,6 +155,12 @@ describe('News, Category, Tag CRUD (e2e)', () => {
     const listRes = await request(app.getHttpServer()).get('/news').expect(200);
     expect(listRes.body).toBeDefined(); // list endpoint returns paginated shape, keep generic assertion
 
+    // Get list by category id (paginated)
+    const byCategoryRes = await request(app.getHttpServer())
+      .get(`/news/categories/${categoryId}/news`)
+      .expect(200);
+    expect(byCategoryRes.body).toBeDefined();
+
     // Update
     const newTitle = 'Updated News Title';
     const updateRes = await request(app.getHttpServer())
