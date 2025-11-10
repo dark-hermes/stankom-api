@@ -1,9 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import request from 'supertest';
-import { AppModule } from './../src/app.module';
 import type { Server } from 'http';
 import type { Response } from 'supertest';
+import request from 'supertest';
+import { AppModule } from './../src/app.module';
 
 describe('Guest / Public API (e2e)', () => {
   let app: INestApplication;
