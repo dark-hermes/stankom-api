@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  api:
+    image: registry.digitalocean.com/stankom/stankom-api:latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./gcs-key.json:/app/gcs-key.json:ro
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
