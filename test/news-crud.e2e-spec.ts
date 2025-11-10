@@ -70,6 +70,13 @@ describe('News, Category, Tag CRUD (e2e)', () => {
 
     const categoryId = category.id;
 
+    // Get by id
+    const getRes = await request(app.getHttpServer())
+      .get(`/news/categories/${categoryId}`)
+      .expect(200);
+    const got = asApiResponse<NewsCategory>(getRes).data;
+    expect(got.id).toBe(categoryId);
+
     // Update
     const updatedTitle = title + ' - updated';
     const updateRes = await request(app.getHttpServer())

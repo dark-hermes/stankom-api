@@ -401,6 +401,15 @@ export class NewsService {
     return this.prisma.newsCategory.update({ where: { id }, data });
   }
 
+  async findCategoryById(id: number) {
+    const item = await this.prisma.newsCategory.findUnique({
+      where: { id },
+      include: { createdBy: true, updatedBy: true },
+    });
+    if (!item) throw new NotFoundException('Category not found');
+    return item;
+  }
+
   async removeCategory(id: number) {
     // Optionally handle orphaned news; here we simply delete the category if exists
     await this.prisma.newsCategory.delete({ where: { id } });

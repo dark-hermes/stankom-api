@@ -126,6 +126,22 @@ export class NewsController {
     return this.newsService.findAllByCategory(id, query, req);
   }
 
+  @Get('categories/:id')
+  @ApiOperation({ summary: 'Get news category by ID' })
+  @ApiParam({ name: 'id', description: 'Category ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'News category retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'News category not found',
+  })
+  async findCategory(@Param('id', ParseIntPipe) id: number) {
+    const category = await this.newsService.findCategoryById(id);
+    return { message: 'Kategori berita retrieved.', data: category };
+  }
+
   @Put('categories/:id')
   @ApiOperation({ summary: 'Update news category' })
   @ApiParam({ name: 'id', description: 'Category ID' })
