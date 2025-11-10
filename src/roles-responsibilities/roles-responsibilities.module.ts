@@ -6,6 +6,7 @@ import { RolesResponsibilitiesService } from './roles-responsibilities.service';
 @Module({
   imports: [PrismaModule],
   providers: [RolesResponsibilitiesService],
+  exports: [RolesResponsibilitiesService],
   controllers: [RolesResponsibilitiesController],
 })
 export class RolesResponsibilitiesModule {}

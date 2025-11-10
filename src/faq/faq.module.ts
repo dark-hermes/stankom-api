@@ -7,5 +7,6 @@ import { FaqService } from './faq.service';
   imports: [PrismaModule],
   controllers: [FaqController],
   providers: [FaqService],
+  exports: [FaqService],
 })
 export class FaqModule {}

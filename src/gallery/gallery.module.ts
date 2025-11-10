@@ -8,5 +8,6 @@ import { GalleryService } from './gallery.service';
   imports: [PrismaModule, StorageModule],
   controllers: [GalleryController],
   providers: [GalleryService],
+  exports: [GalleryService],
 })
 export class GalleryModule {}

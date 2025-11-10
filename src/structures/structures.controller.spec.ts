@@ -70,7 +70,7 @@ describe('StructuresController', () => {
   it('update with file should delete old and upload new before update', async () => {
     const existing: Structure = {
       id: 1,
-      image: 'old.png',
+      image: 'https://storage.example.com/old.png',
       updatedAt: new Date(),
       createdAt: new Date(),
     } as Structure;
@@ -91,7 +91,9 @@ describe('StructuresController', () => {
     const res = await controller.update(file, { image: undefined });
 
     expect(service.get).toHaveBeenCalled();
-    expect(storage.deleteFile).toHaveBeenCalledWith('old.png');
+    expect(storage.deleteFile).toHaveBeenCalledWith(
+      'https://storage.example.com/old.png',
+    );
     expect(storage.uploadFile).toHaveBeenCalled();
     expect(service.update).toHaveBeenCalledWith({ image: 'uploaded/new.png' });
     expect(res.data.image).toBe('uploaded/new.png');

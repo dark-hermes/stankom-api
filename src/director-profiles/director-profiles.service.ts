@@ -76,7 +76,11 @@ export class DirectorProfilesService {
       throw new NotFoundException('Profil direktur tidak ditemukan.');
 
     // If a new picture is provided, delete the previous one (best-effort)
-    if (pictureUrl && existing.picture && existing.picture !== pictureUrl) {
+    const managedPrev =
+      existing.picture &&
+      existing.picture.startsWith('http') &&
+      existing.picture.includes('storage.');
+    if (pictureUrl && managedPrev && existing.picture !== pictureUrl) {
       try {
         await this.storage.deleteFile(existing.picture);
       } catch {
@@ -105,7 +109,11 @@ export class DirectorProfilesService {
     if (!existing)
       throw new NotFoundException('Profil direktur tidak ditemukan.');
     // best-effort delete of stored picture
-    if (existing.picture) {
+    const managedPrev =
+      existing.picture &&
+      existing.picture.startsWith('http') &&
+      existing.picture.includes('storage.');
+    if (managedPrev) {
       try {
         await this.storage.deleteFile(existing.picture);
       } catch {

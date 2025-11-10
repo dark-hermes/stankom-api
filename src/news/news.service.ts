@@ -188,6 +188,19 @@ export class NewsService {
     return item;
   }
 
+  async findOneBySlug(slug: string) {
+    const item = await this.prisma.news.findUnique({
+      where: { slug },
+      include: {
+        tags: { include: { tag: true } },
+        category: true,
+        createdBy: true,
+      },
+    });
+    if (!item) throw new NotFoundException('News not found');
+    return item;
+  }
+
   async update(id: number, dto: UpdateNewsDto) {
     const existing = await this.prisma.news.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('News not found');

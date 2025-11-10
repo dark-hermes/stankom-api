@@ -43,7 +43,7 @@ export class StatisticsService {
 
     return paginate<StatisticCategory>(
       this.prisma.statisticCategory,
-      { where, orderBy },
+      { where, orderBy, include: { statistics: true } },
       { page: query.page, limit: query.limit, baseUrl },
     );
   }
@@ -66,6 +66,15 @@ export class StatisticsService {
   async removeCategory(id: number) {
     await this.prisma.statisticCategory.delete({ where: { id } });
     return { deleted: true };
+  }
+
+  async findCategoryById(id: number) {
+    const item = await this.prisma.statisticCategory.findUnique({
+      where: { id },
+      include: { statistics: true },
+    });
+    if (!item) throw new NotFoundException('Category not found');
+    return item;
   }
 
   // Statistics

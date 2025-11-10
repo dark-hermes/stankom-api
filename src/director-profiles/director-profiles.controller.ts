@@ -2,13 +2,10 @@ import {
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
   Get,
   HttpCode,
   HttpStatus,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   ParseIntPipe,
   Post,
   Put,
@@ -78,17 +75,21 @@ export class DirectorProfilesController {
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body() dto: CreateDirectorProfileDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
-        ],
-        fileIsRequired: false,
-      }),
-    )
-    file?: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<DirectorProfileResponseDto> {
+    // Helper to coerce possible string numbers from multipart form fields
+    const coerceNumber = (val: unknown): number | undefined => {
+      if (val === '' || val === undefined || val === null) return undefined;
+      if (typeof val === 'string') return Number(val);
+      if (typeof val === 'number') return val;
+      return undefined;
+    };
+    const coerced: CreateDirectorProfileDto = {
+      ...dto,
+      order: coerceNumber(dto.order)!, // required
+      beginYear: coerceNumber(dto.beginYear)!, // required
+      endYear: coerceNumber(dto.endYear),
+    } as CreateDirectorProfileDto;
     let pictureUrl: string | undefined;
     if (file) {
       pictureUrl = await this.storageService.uploadFile(
@@ -96,7 +97,10 @@ export class DirectorProfilesController {
         'director-profiles/',
       );
     }
-    const created = await this.directorProfilesService.create(dto, pictureUrl);
+    const created = await this.directorProfilesService.create(
+      coerced,
+      pictureUrl,
+    );
     return { message: 'Profil direktur berhasil dibuat.', data: created };
   }
 
@@ -148,17 +152,22 @@ export class DirectorProfilesController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDirectorProfileDto,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
-        ],
-        fileIsRequired: false,
-      }),
-    )
-    file?: Express.Multer.File,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<DirectorProfileResponseDto> {
+    const coerceNumber = (val: unknown): number | undefined => {
+      if (val === '' || val === undefined || val === null) return undefined;
+      if (typeof val === 'string') return Number(val);
+      if (typeof val === 'number') return val;
+      return undefined;
+    };
+    const coerced: UpdateDirectorProfileDto = {
+      ...dto,
+      order: dto.order !== undefined ? coerceNumber(dto.order) : undefined,
+      beginYear:
+        dto.beginYear !== undefined ? coerceNumber(dto.beginYear) : undefined,
+      endYear:
+        dto.endYear !== undefined ? coerceNumber(dto.endYear) : undefined,
+    } as UpdateDirectorProfileDto;
     let pictureUrl: string | undefined;
     if (file) {
       pictureUrl = await this.storageService.uploadFile(
@@ -168,7 +177,7 @@ export class DirectorProfilesController {
     }
     const updated = await this.directorProfilesService.update(
       id,
-      dto,
+      coerced,
       pictureUrl,
     );
     return { message: 'Profil direktur berhasil diperbarui.', data: updated };

@@ -1,10 +1,1 @@
-#!/usr/bin/env sh
-# Husky v10+ compatible hook header
-# See https://typicode.github.io/husky/#/?id=upgrading-to-v10
-if [ -z "$HUSKY_SKIP_INSTALL" ]; then
-	# Load husky sh helpers when available for compatibility with older setups
-	# (this is safe; if the helper file isn't present, the script continues)
-	[ -f "$(dirname "$0")/_/husky.sh" ] && . "$(dirname "$0")/_/husky.sh"
-fi
-
 npx lint-staged

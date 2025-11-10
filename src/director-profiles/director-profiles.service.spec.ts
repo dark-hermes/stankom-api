@@ -26,7 +26,7 @@ describe('DirectorProfilesService', () => {
                 endYear: 2025,
                 name: 'Jane',
                 detail: 'Desc',
-                picture: 'pic.png',
+                picture: 'https://storage.example.com/pic.png',
                 createdAt: new Date(),
                 updatedAt: new Date(),
               }),
@@ -37,7 +37,7 @@ describe('DirectorProfilesService', () => {
                 endYear: 2025,
                 name: 'Jane',
                 detail: 'Desc',
-                picture: 'pic.png',
+                picture: 'https://storage.example.com/pic.png',
                 createdAt: new Date(),
                 updatedAt: new Date(),
               }),
@@ -48,7 +48,7 @@ describe('DirectorProfilesService', () => {
                 endYear: new Date().getFullYear(),
                 name: 'Jane Updated',
                 detail: 'Desc2',
-                picture: 'pic2.png',
+                picture: 'https://storage.example.com/pic2.png',
                 createdAt: new Date(),
                 updatedAt: new Date(),
               }),
@@ -59,7 +59,7 @@ describe('DirectorProfilesService', () => {
                 endYear: 2025,
                 name: 'Jane',
                 detail: 'Desc',
-                picture: 'pic.png',
+                picture: 'https://storage.example.com/pic.png',
                 createdAt: new Date(),
                 updatedAt: new Date(),
               }),
@@ -115,11 +115,15 @@ describe('DirectorProfilesService', () => {
     const [updateArg] = updateCalls[0];
     expect(updateArg.data.endYear).toBe(new Date().getFullYear());
     // old picture deleted before update
-    expect(storage.deleteFile).toHaveBeenCalledWith('pic.png');
+    expect(storage.deleteFile).toHaveBeenCalledWith(
+      'https://storage.example.com/pic.png',
+    );
   });
 
   it('remove deletes picture via storage', async () => {
     await service.remove(1);
-    expect(storage.deleteFile).toHaveBeenCalledWith('pic.png');
+    expect(storage.deleteFile).toHaveBeenCalledWith(
+      'https://storage.example.com/pic.png',
+    );
   });
 });

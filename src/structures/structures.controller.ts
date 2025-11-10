@@ -58,7 +58,12 @@ export class StructuresController {
     // If file uploaded, replace existing image (delete old, upload new)
     if (file) {
       const existing = await this.structuresService.get();
-      if (existing.image) {
+      // Only delete previous image if it looks like a managed storage URL
+      const shouldDeletePrev =
+        typeof existing.image === 'string' &&
+        existing.image.startsWith('http') &&
+        existing.image.includes('storage.');
+      if (shouldDeletePrev) {
         try {
           await this.storageService.deleteFile(existing.image);
         } catch {

@@ -74,7 +74,7 @@ describe('HeroService', () => {
       id: 1,
       heading: 'H',
       subHeading: 'S',
-      banner: 'old.png',
+      banner: 'https://storage.example.com/old.png',
       pathVideo: null,
       updatedAt: new Date(),
     } as HeroSection);
@@ -84,7 +84,9 @@ describe('HeroService', () => {
     };
     const file = filePartial as Express.Multer.File;
     await service.replaceBanner(file);
-    expect(storage.deleteFile).toHaveBeenCalledWith('old.png');
+    expect(storage.deleteFile).toHaveBeenCalledWith(
+      'https://storage.example.com/old.png',
+    );
     expect(storage.uploadFile).toHaveBeenCalled();
     expect(prisma.heroSection.update).toHaveBeenCalled();
   });

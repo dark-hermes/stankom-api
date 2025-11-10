@@ -74,6 +74,17 @@ describe('Statistics CRUD (e2e)', () => {
 
     const id = stat.id;
 
+    // get category by id and expect statistic relation present
+    const getCatRes = await request(app.getHttpServer())
+      .get(`/statistics/categories/${category.id}`)
+      .expect(200);
+    const gotCat = asApiResponse<
+      StatisticCategory & { statistics: Statistic[] }
+    >(getCatRes).data;
+    expect(gotCat).toHaveProperty('id');
+    expect(Array.isArray(gotCat.statistics)).toBe(true);
+    expect(gotCat.statistics.find((s: Statistic) => s.id === id)).toBeDefined();
+
     // update statistic
     const updateRes = await request(app.getHttpServer())
       .put(`/statistics/${id}`)

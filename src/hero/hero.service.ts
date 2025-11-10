@@ -52,7 +52,12 @@ export class HeroService {
 
   async replaceBanner(file: Express.Multer.File): Promise<HeroSection> {
     const existing = await this.ensureExists();
-    if (existing.banner) {
+    // Only delete previous banner if it looks like a managed storage URL
+    const shouldDeletePrev =
+      typeof existing.banner === 'string' &&
+      existing.banner.startsWith('http') &&
+      existing.banner.includes('storage.');
+    if (shouldDeletePrev) {
       try {
         await this.storage.deleteFile(existing.banner);
       } catch {

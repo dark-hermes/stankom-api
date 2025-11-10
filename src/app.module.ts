@@ -7,6 +7,7 @@ import { pinoLoggerConfig } from './config/pino-logger.config';
 import { DirectorProfilesModule } from './director-profiles/director-profiles.module';
 import { FaqModule } from './faq/faq.module';
 import { GalleryModule } from './gallery/gallery.module';
+import { GuestModule } from './guest/guest.module';
 import { HealthModule } from './health/health.module';
 import { HeroModule } from './hero/hero.module';
 import { HistoriesModule } from './histories/histories.module';
@@ -29,6 +30,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     UsersModule,
     HealthModule,
+    GuestModule,
     NewsModule,
     StorageModule,
     AnnouncementsModule,
@@ -48,5 +50,3 @@ import { UsersModule } from './users/users.module';
   providers: [],
 })
 export class AppModule {}
-
-// NOTE: harmless whitespace/comment change to trigger husky pre-commit test

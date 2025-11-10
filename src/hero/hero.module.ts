@@ -7,6 +7,7 @@ import { HeroService } from './hero.service';
 @Module({
   imports: [PrismaModule, StorageModule],
   providers: [HeroService],
+  exports: [HeroService],
   controllers: [HeroController],
 })
 export class HeroModule {}

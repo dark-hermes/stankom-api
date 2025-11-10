@@ -7,5 +7,6 @@ import { StatisticsService } from './statistics.service';
   imports: [PrismaModule],
   controllers: [StatisticsController],
   providers: [StatisticsService],
+  exports: [StatisticsService],
 })
 export class StatisticsModule {}

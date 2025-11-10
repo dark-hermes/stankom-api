@@ -7,5 +7,6 @@ import { HistoriesService } from './histories.service';
   imports: [PrismaModule],
   controllers: [HistoriesController],
   providers: [HistoriesService],
+  exports: [HistoriesService],
 })
 export class HistoriesModule {}

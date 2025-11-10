@@ -64,6 +64,16 @@ export class StatisticsController {
     return this.statsService.findAllCategories(query, req);
   }
 
+  @Get('categories/:id')
+  @ApiOperation({ summary: 'Get statistic category by ID with its statistics' })
+  @ApiParam({ name: 'id' })
+  @ApiResponse({ status: HttpStatus.OK })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND })
+  async findCategory(@Param('id', ParseIntPipe) id: number) {
+    const category = await this.statsService.findCategoryById(id);
+    return { message: 'Kategori statistik retrieved.', data: category };
+  }
+
   @Put('categories/:id')
   @ApiParam({ name: 'id' })
   async updateCategory(

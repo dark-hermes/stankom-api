@@ -8,5 +8,6 @@ import { NewsService } from './news.service';
   imports: [PrismaModule, StorageModule],
   controllers: [NewsController],
   providers: [NewsService],
+  exports: [NewsService],
 })
 export class NewsModule {}
