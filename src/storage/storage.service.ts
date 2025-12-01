@@ -1,22 +1,27 @@
-import { Storage } from '@google-cloud/storage';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createReadStream } from 'fs';
-import { format } from 'util';
+import { promises as fsPromises } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class StorageService {
-  private readonly storage: Storage;
-  private readonly bucketName: string;
   private readonly logger = new Logger(StorageService.name);
+  private readonly uploadRoot: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.bucketName = this.configService.get<string>('GCS_BUCKET_NAME') || '';
+    this.uploadRoot =
+      this.configService.get<string>('UPLOAD_DEST') || 'uploads';
+  }
 
-    this.storage = new Storage({
-      projectId: this.configService.get<string>('GCS_PROJECT_ID'),
-      keyFilename: this.configService.get<string>('GCS_KEYFILE_PATH'),
-    });
+  private hasDiskPath(
+    file: unknown,
+  ): file is Express.Multer.File & { path: string } {
+    return (
+      typeof file === 'object' &&
+      file !== null &&
+      'path' in file &&
+      typeof (file as Record<string, unknown>)['path'] === 'string'
+    );
   }
 
   /**
@@ -27,63 +32,41 @@ export class StorageService {
    */
   async uploadFile(
     file: Express.Multer.File,
-    pathPrefix = 'general/',
+    pathPrefix = 'images/',
   ): Promise<string> {
-    const bucket = this.storage.bucket(this.bucketName);
-
-    // Buat nama file unik
-    // dynamically import uuid to avoid ESM static import issues in tests
-
     const { v4: uuidv4 } = await import('uuid');
+    const originalNameSanitized = file.originalname.replace(/\s+/g, '_');
+    const uniqueFilename = `${uuidv4()}-${originalNameSanitized}`;
+    const targetDir = join(process.cwd(), this.uploadRoot, pathPrefix);
+    const targetPath = join(targetDir, uniqueFilename);
 
-    const uniqueFilename = `${uuidv4()}-${file.originalname.replace(/\s/g, '_')}`;
-    const destination = `${pathPrefix}${uniqueFilename}`;
+    try {
+      // Ensure directory exists
+      await fsPromises.mkdir(targetDir, { recursive: true });
 
-    const blob = bucket.file(destination);
-
-    return new Promise((resolve, reject) => {
-      const blobStream = blob.createWriteStream({
-        resumable: false,
-        contentType: file.mimetype,
-      });
-
-      blobStream.on('error', (err) => {
-        this.logger.error(`Error uploading to GCS: ${err.message}`);
-        reject(new Error('File upload failed.'));
-      });
-
-      blobStream.on('finish', () => {
-        const publicUrl = format(
-          `https://storage.googleapis.com/${bucket.name}/${blob.name}`,
-        );
-        this.logger.log(`File uploaded to: ${publicUrl}`);
-        resolve(publicUrl);
-      });
-
-      // Multer memory storage provides buffer, disk storage provides path.
       if (file.buffer && file.buffer.length > 0) {
-        blobStream.end(file.buffer);
-      } else if (file.path) {
-        // Pipe stream from disk file
-        try {
-          const rs = createReadStream(file.path);
-          rs.on('error', (err) => {
-            this.logger.error(
-              `Read stream error for file upload: ${err.message}`,
-            );
-            blobStream.destroy(err);
-          });
-          rs.pipe(blobStream);
-        } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : 'Unknown';
-          this.logger.error(`Failed to create read stream: ${errorMessage}`);
-          blobStream.destroy(err as Error);
-        }
+        await fsPromises.writeFile(targetPath, file.buffer);
+      } else if (this.hasDiskPath(file)) {
+        // If using disk storage, move/copy from disk path.
+        const diskPath = file.path;
+        await fsPromises.copyFile(diskPath, targetPath);
       } else {
-        this.logger.error('File upload failed: no buffer or path');
-        blobStream.destroy(new Error('No file data'));
+        throw new Error('No file data received');
       }
-    });
+
+      // Build absolute URL: <PUBLIC_BASE_URL>/uploads/<prefix><filename>
+      const relativePath = `${pathPrefix}${uniqueFilename}`.replace(/\\/g, '/');
+      const relativeUrl = `/${this.uploadRoot}/${relativePath}`; // /uploads/images/uuid-name.ext
+      const baseUrlRaw = this.configService.get<string>('PUBLIC_BASE_URL');
+      const baseUrl = baseUrlRaw ? baseUrlRaw.replace(/\/$/, '') : '';
+      const finalUrl = baseUrl ? `${baseUrl}${relativeUrl}` : relativeUrl;
+      this.logger.log(`File stored locally at: ${finalUrl}`);
+      return finalUrl;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      this.logger.error(`Local file write failed: ${msg}`);
+      throw new Error('File upload failed');
+    }
   }
 
   /**
@@ -92,22 +75,28 @@ export class StorageService {
    */
   async deleteFile(publicUrl: string): Promise<void> {
     try {
-      // Ekstrak nama file dari URL
-      const urlParts = publicUrl.split('/');
-      const bucketName = urlParts[3]; // Asumsi format URL GCS
-      const filename = urlParts.slice(4).join('/');
-
-      if (bucketName !== this.bucketName) {
-        throw new Error('Invalid bucket name in URL.');
+      const baseUrlRaw = this.configService.get<string>('PUBLIC_BASE_URL');
+      let normalized = publicUrl.trim();
+      if (baseUrlRaw && normalized.startsWith(baseUrlRaw)) {
+        normalized = normalized.substring(baseUrlRaw.length);
       }
-
-      await this.storage.bucket(this.bucketName).file(filename).delete();
-      this.logger.log(`File deleted: ${filename}`);
+      // Remove any leading /api segment if present
+      if (normalized.startsWith('/api/')) {
+        normalized = normalized.substring(4);
+      }
+      // Remove leading slash for path checks
+      if (normalized.startsWith('/')) {
+        normalized = normalized.substring(1);
+      }
+      if (!normalized.startsWith(`${this.uploadRoot}/`)) {
+        throw new Error('Invalid uploads path');
+      }
+      const absolutePath = join(process.cwd(), normalized);
+      await fsPromises.unlink(absolutePath);
+      this.logger.log(`File deleted: ${publicUrl}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       this.logger.error(`Failed to delete file ${publicUrl}: ${errorMessage}`);
-      // Gagal menghapus tidak harus melempar error,
-      // mungkin file sudah tidak ada.
     }
   }
 }

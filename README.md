@@ -506,9 +506,8 @@ COOKIE_SECRET=your-super-secret-cookie-key
 # CORS
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 
-# Google Cloud Storage
-GCS_BUCKET_NAME=your-bucket-name
-GCS_KEY_FILE=./gcs-key.json
+# Local Uploads
+UPLOAD_DEST=uploads
 ```
 
 4. **Setup database:**
@@ -621,9 +620,11 @@ JWT_SECRET=your-super-secret-jwt-key
 # Cookies
 COOKIE_SECRET=your-super-secret-cookie-key
 
-# Google Cloud Storage
-GCS_BUCKET_NAME=your-bucket-name
-GCS_KEY_FILE=./gcs-key.json
+# Public Base URL for generating absolute file URLs
+PUBLIC_BASE_URL=http://localhost:3000
+
+# Local Uploads
+UPLOAD_DEST=uploads
 ```
 
 ### Environment Variables Explanation
@@ -640,8 +641,8 @@ GCS_KEY_FILE=./gcs-key.json
 | `DB_PORT`         | Database port (for Docker compose usage)      | `5432`                                                 | ✅ (Docker) |
 | `JWT_SECRET`      | JWT signing secret                            | -                                                      | ✅          |
 | `COOKIE_SECRET`   | Cookie signing secret                         | -                                                      | ✅          |
-| `GCS_BUCKET_NAME` | Google Cloud Storage bucket name              | -                                                      | ❌          |
-| `GCS_KEY_FILE`    | Path to GCS service account key JSON          | `./gcs-key.json`                                       | ❌          |
+| `PUBLIC_BASE_URL` | Base URL for absolute asset links             | -                                                      | ❌          |
+| `UPLOAD_DEST`     | Local upload root directory                   | `uploads`                                              | ❌          |
 
 ---
 
@@ -1221,53 +1222,53 @@ POST /api/v1/auth/logout       # Logout user
 #### Users (Requires JWT)
 
 ```
-GET    /api/v1/users           # List users
-GET    /api/v1/users/:id       # Get user detail
-POST   /api/v1/users           # Create user
-PATCH  /api/v1/users/:id       # Update user
-DELETE /api/v1/users/:id       # Delete user
+GET    /api/v1/users?page&limit            # List users (supports pagination)
+GET    /api/v1/users/:id                   # Get user detail
+POST   /api/v1/users                       # Create user { name, email, password }
+PATCH  /api/v1/users/:id                   # Update user { name?, password? }
+DELETE /api/v1/users/:id                   # Delete user
 ```
 
 #### News Management
 
 ```
-GET    /api/v1/news            # List all news (with filters)
-GET    /api/v1/news/:id        # Get news detail
-POST   /api/v1/news            # Create news
-PUT    /api/v1/news/:id        # Update news
-DELETE /api/v1/news/:id        # Delete news
+GET    /api/v1/news?status&categoryId&search&page&limit   # List news (filter by status/category, search, pagination)
+GET    /api/v1/news/:id                                   # Get news detail by ID
+POST   /api/v1/news                                       # Create news { title, excerpt, description, categoryId, status?, tagIds? }
+PUT    /api/v1/news/:id                                   # Update news { title?, excerpt?, description?, categoryId?, status?, tagIds? }
+DELETE /api/v1/news/:id                                   # Delete news
 ```
 
 #### News Categories
 
 ```
-GET    /api/v1/news-categories           # List categories
-GET    /api/v1/news-categories/:id       # Get category detail
-POST   /api/v1/news-categories           # Create category
-PUT    /api/v1/news-categories/:id       # Update category
-DELETE /api/v1/news-categories/:id       # Delete category
+GET    /api/v1/news-categories?page&limit        # List categories (pagination)
+GET    /api/v1/news-categories/:id               # Get category detail
+POST   /api/v1/news-categories                   # Create category { title }
+PUT    /api/v1/news-categories/:id               # Update category { title }
+DELETE /api/v1/news-categories/:id               # Delete category
 ```
 
 #### Announcements
 
 ```
-GET    /api/v1/announcements                        # List announcements
-GET    /api/v1/announcements/:id                    # Get announcement detail
-POST   /api/v1/announcements                        # Create announcement
-PUT    /api/v1/announcements/:id                    # Update announcement
-DELETE /api/v1/announcements/:id                    # Delete announcement
-POST   /api/v1/announcements/:id/upload-attachment  # Upload attachment
+GET    /api/v1/announcements?page&limit&search        # List announcements (pagination + optional search)
+GET    /api/v1/announcements/:id                      # Get announcement detail
+POST   /api/v1/announcements                          # Create { title, description, attachment? }
+PUT    /api/v1/announcements/:id                      # Update { title?, description?, attachment? }
+DELETE /api/v1/announcements/:id                      # Delete announcement
+POST   /api/v1/announcements/:id/upload-attachment    # Upload/replace attachment file
 ```
 
 #### Services
 
 ```
-GET    /api/v1/services            # List services
-GET    /api/v1/services/:id        # Get service detail
-POST   /api/v1/services            # Create service
-PUT    /api/v1/services/:id        # Update service
-PUT    /api/v1/services/:id/icon   # Update service icon
-DELETE /api/v1/services/:id        # Delete service
+GET    /api/v1/services?page&limit&search          # List services (pagination + search)
+GET    /api/v1/services/:id                        # Get service detail
+POST   /api/v1/services                            # Create { title, description, icon, link? }
+PUT    /api/v1/services/:id                        # Update { title?, description?, icon?, link? }
+PUT    /api/v1/services/:id/icon                   # Update service icon (multipart/form-data)
+DELETE /api/v1/services/:id                        # Delete service
 ```
 
 #### FAQ
@@ -1369,7 +1370,7 @@ DELETE /api/v1/statistics/categories/:id   # Delete category
 #### File Upload
 
 ```
-POST /api/v1/upload/image  # Upload image to GCS
+POST /api/v1/upload/image  # Upload image; response.url absolute (PUBLIC_BASE_URL + /uploads/images/...) like http://localhost:3000/uploads/images/<file>
 ```
 
 ---

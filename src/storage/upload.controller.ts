@@ -29,7 +29,7 @@ export class UploadController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post('image')
-  @ApiOperation({ summary: 'Upload image to Google Cloud Storage' })
+  @ApiOperation({ summary: 'Upload image to local server storage (/uploads)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Image file to upload (max 5MB, png/jpeg/jpg/webp/gif)',
@@ -52,8 +52,7 @@ export class UploadController {
         message: { type: 'string', example: 'File uploaded successfully' },
         url: {
           type: 'string',
-          example:
-            'https://storage.googleapis.com/bucket-name/images/uuid-filename.jpg',
+          example: '/uploads/images/uuid-filename.jpg',
         },
       },
     },

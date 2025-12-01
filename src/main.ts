@@ -3,8 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import * as express from 'express';
 import { Logger } from 'nestjs-pino';
+import { join } from 'path';
 import { AppModule } from './app.module';
+import { FileUrlInterceptor } from './common/interceptors/file-url.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -46,6 +49,15 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('api/v1');
+
+  // Global interceptor to normalize file URLs to absolute paths
+  app.useGlobalInterceptors(new FileUrlInterceptor(configService));
+
+  // Serve static uploaded files under /uploads and /api/uploads
+  const uploadRoot = configService.get<string>('UPLOAD_DEST') || 'uploads';
+  const uploadsPath = join(process.cwd(), uploadRoot);
+  app.use(`/${uploadRoot}`, express.static(uploadsPath)); // backward compatibility
+  app.use(`/api/${uploadRoot}`, express.static(uploadsPath)); // API-prefixed access
 
   if (nodeEnv !== 'production') {
     const config = new DocumentBuilder()
