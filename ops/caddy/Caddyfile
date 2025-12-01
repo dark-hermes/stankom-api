@@ -1,0 +1,38 @@
+# Replace yourdomain.com with your real domain. Ensure DNS A record points to the droplet IP.
+# This file will be bind-mounted into the Caddy container.
+# After editing, run: docker compose -f docker-compose.prod.yml up -d
+
+{
+  email admin@example.com
+  # Optional: increase timeouts / enable debugging
+  # debug
+}
+
+yourdomain.com {
+  encode gzip zstd
+  @api path /api/*
+  # Security headers
+  header {
+    -Server
+    X-Frame-Options "DENY"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "no-referrer"
+    X-XSS-Protection "0"
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    # Content-Security-Policy is application-specific; uncomment and tailor if needed
+    # Content-Security-Policy "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self';"
+  }
+
+  # Reverse proxy entire site (includes /api/v1 prefix)
+  reverse_proxy stankom-api:3000 {
+    # Preserve real IP
+    header_up X-Forwarded-For {remote_host}
+    header_up X-Forwarded-Proto {scheme}
+  }
+
+  # Health check passthrough (optional explicit)
+  @health path /health
+  handle @health {
+    reverse_proxy stankom-api:3000
+  }
+}

@@ -1,4 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateDirectorProfileDto {
@@ -6,11 +7,13 @@ export class UpdateDirectorProfileDto {
   @IsOptional()
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   order?: number;
 
   @ApiPropertyOptional({ example: 2021 })
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   beginYear?: number;
 
   @ApiPropertyOptional({
@@ -19,6 +22,7 @@ export class UpdateDirectorProfileDto {
   })
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   endYear?: number | null;
 
   @ApiPropertyOptional({ example: 'John Doe' })

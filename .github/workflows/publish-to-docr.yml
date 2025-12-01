@@ -1,0 +1,42 @@
+name: Build and push to DigitalOcean Container Registry
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DOCR
+        run: doctl registry login
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            registry.digitalocean.com/${{ env.DOCR_REGISTRY }}/stankom-api:latest
+            registry.digitalocean.com/${{ env.DOCR_REGISTRY }}/stankom-api:${{ github.sha }}
+        env:
+          DOCR_REGISTRY: ${{ secrets.DOCR_REGISTRY }}
+
+      - name: Image info
+        run: |
+          echo "Pushed image to registry.digitalocean.com/${{ secrets.DOCR_REGISTRY }}/stankom-api:${{ github.sha }}"

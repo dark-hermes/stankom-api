@@ -1,14 +1,17 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateDirectorProfileDto {
   @ApiProperty({ example: 1, description: 'Display order (lower shows first)' })
   @IsInt()
   @Min(0)
+  @Type(() => Number)
   order: number;
 
   @ApiProperty({ example: 2020 })
   @IsInt()
+  @Type(() => Number)
   beginYear: number;
 
   @ApiPropertyOptional({
@@ -17,6 +20,7 @@ export class CreateDirectorProfileDto {
   })
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   endYear?: number | null;
 
   @ApiProperty({ example: 'Jane Doe' })

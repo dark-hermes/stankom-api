@@ -102,4 +102,124 @@ describe('DirectorProfiles (e2e)', () => {
       'https://storage.example/director2.png',
     );
   });
+
+  it('should automatically reorder profiles when creating with duplicate order', async () => {
+    // Clean up any existing profiles first
+    await prisma.directorProfile.deleteMany({});
+
+    // Create first profile with order 1
+    const res1 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '1')
+      .field('beginYear', '2020')
+      .field('name', 'Director 1')
+      .field('detail', 'First director')
+      .expect(201);
+    const profile1 = asApiResponse<DirectorProfile>(res1).data;
+    expect(profile1.order).toBe(1);
+
+    // Create second profile with order 2
+    const res2 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '2')
+      .field('beginYear', '2021')
+      .field('name', 'Director 2')
+      .field('detail', 'Second director')
+      .expect(201);
+    const profile2 = asApiResponse<DirectorProfile>(res2).data;
+    expect(profile2.order).toBe(2);
+
+    // Create third profile with order 3
+    const res3 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '3')
+      .field('beginYear', '2022')
+      .field('name', 'Director 3')
+      .field('detail', 'Third director')
+      .expect(201);
+    const profile3 = asApiResponse<DirectorProfile>(res3).data;
+    expect(profile3.order).toBe(3);
+
+    // Now create a new profile with order 2, should push existing 2 to 3, and 3 to 4
+    const res4 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '2')
+      .field('beginYear', '2023')
+      .field('name', 'Director New')
+      .field('detail', 'New director inserted at position 2')
+      .expect(201);
+    const profile4 = asApiResponse<DirectorProfile>(res4).data;
+    expect(profile4.order).toBe(2);
+
+    // Verify all orders
+    const allProfiles = await prisma.directorProfile.findMany({
+      orderBy: { order: 'asc' },
+    });
+    expect(allProfiles).toHaveLength(4);
+    expect(allProfiles[0].id).toBe(profile1.id);
+    expect(allProfiles[0].order).toBe(1);
+    expect(allProfiles[1].id).toBe(profile4.id);
+    expect(allProfiles[1].order).toBe(2);
+    expect(allProfiles[2].id).toBe(profile2.id);
+    expect(allProfiles[2].order).toBe(3);
+    expect(allProfiles[3].id).toBe(profile3.id);
+    expect(allProfiles[3].order).toBe(4);
+
+    // Clean up
+    await prisma.directorProfile.deleteMany({});
+  });
+
+  it('should automatically reorder profiles when updating order', async () => {
+    // Clean up any existing profiles first
+    await prisma.directorProfile.deleteMany({});
+
+    // Create three profiles with orders 1, 2, 3
+    const res1 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '1')
+      .field('beginYear', '2020')
+      .field('name', 'Director A')
+      .field('detail', 'First')
+      .expect(201);
+    const profileA = asApiResponse<DirectorProfile>(res1).data;
+
+    const res2 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '2')
+      .field('beginYear', '2021')
+      .field('name', 'Director B')
+      .field('detail', 'Second')
+      .expect(201);
+    const profileB = asApiResponse<DirectorProfile>(res2).data;
+
+    const res3 = await request(app.getHttpServer())
+      .post('/director-profiles')
+      .field('order', '3')
+      .field('beginYear', '2022')
+      .field('name', 'Director C')
+      .field('detail', 'Third')
+      .expect(201);
+    const profileC = asApiResponse<DirectorProfile>(res3).data;
+
+    // Update profile C (order 3) to order 1, should push A to 2 and B to 3
+    await request(app.getHttpServer())
+      .put(`/director-profiles/${profileC.id}`)
+      .field('order', '1')
+      .expect(200);
+
+    // Verify all orders
+    const allProfiles = await prisma.directorProfile.findMany({
+      orderBy: { order: 'asc' },
+    });
+    expect(allProfiles).toHaveLength(3);
+    expect(allProfiles[0].id).toBe(profileC.id);
+    expect(allProfiles[0].order).toBe(1);
+    expect(allProfiles[1].id).toBe(profileA.id);
+    expect(allProfiles[1].order).toBe(2);
+    expect(allProfiles[2].id).toBe(profileB.id);
+    expect(allProfiles[2].order).toBe(3);
+
+    // Clean up
+    await prisma.directorProfile.deleteMany({});
+  });
 });

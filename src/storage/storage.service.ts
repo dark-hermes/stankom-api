@@ -1,6 +1,7 @@
 import { Storage } from '@google-cloud/storage';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createReadStream } from 'fs';
 import { format } from 'util';
 
 @Injectable()
@@ -43,7 +44,6 @@ export class StorageService {
     return new Promise((resolve, reject) => {
       const blobStream = blob.createWriteStream({
         resumable: false,
-
         contentType: file.mimetype,
       });
 
@@ -60,7 +60,29 @@ export class StorageService {
         resolve(publicUrl);
       });
 
-      blobStream.end(file.buffer);
+      // Multer memory storage provides buffer, disk storage provides path.
+      if (file.buffer && file.buffer.length > 0) {
+        blobStream.end(file.buffer);
+      } else if (file.path) {
+        // Pipe stream from disk file
+        try {
+          const rs = createReadStream(file.path);
+          rs.on('error', (err) => {
+            this.logger.error(
+              `Read stream error for file upload: ${err.message}`,
+            );
+            blobStream.destroy(err);
+          });
+          rs.pipe(blobStream);
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Unknown';
+          this.logger.error(`Failed to create read stream: ${errorMessage}`);
+          blobStream.destroy(err as Error);
+        }
+      } else {
+        this.logger.error('File upload failed: no buffer or path');
+        blobStream.destroy(new Error('No file data'));
+      }
     });
   }
 

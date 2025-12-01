@@ -59,8 +59,11 @@ export class AuthController {
     // Set the JWT in a secure, HttpOnly, signed cookie
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: this.configService.get<string>('nodeEnv') === 'production',
-      sameSite: 'strict',
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite:
+        this.configService.get<string>('NODE_ENV') === 'production'
+          ? 'none'
+          : 'strict',
       signed: true,
       path: '/',
       // maxAge can be set here, but it's controlled by JWT expiry
@@ -89,8 +92,11 @@ export class AuthController {
     // Clear the signed cookie
     res.clearCookie('access_token', {
       httpOnly: true,
-      secure: this.configService.get<string>('nodeEnv') === 'production',
-      sameSite: 'strict',
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
+      sameSite:
+        this.configService.get<string>('NODE_ENV') === 'production'
+          ? 'none'
+          : 'strict',
       signed: true,
       path: '/',
     });

@@ -20,11 +20,41 @@ export class DirectorProfilesService {
     private readonly storage: StorageService,
   ) {}
 
+  /**
+   * Helper to reorder director profiles when a new order is inserted.
+   * Shifts all profiles with order >= newOrder up by 1, excluding the given ID.
+   */
+  private async reorderProfiles(
+    newOrder: number,
+    excludeId?: number,
+  ): Promise<void> {
+    // Get all profiles with order >= newOrder (excluding the one being updated)
+    const profilesToShift = await this.prisma.directorProfile.findMany({
+      where: {
+        order: { gte: newOrder },
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      orderBy: { order: 'desc' }, // Process from highest to lowest to avoid conflicts
+    });
+
+    // Update each profile's order incrementally
+    for (const profile of profilesToShift) {
+      await this.prisma.directorProfile.update({
+        where: { id: profile.id },
+        data: { order: profile.order + 1 },
+      });
+    }
+  }
+
   async create(
     dto: CreateDirectorProfileDto,
     pictureUrl?: string,
   ): Promise<DirectorProfile> {
     const endYearFinal = dto.endYear ?? new Date().getFullYear();
+
+    // Reorder existing profiles if necessary
+    await this.reorderProfiles(dto.order);
+
     const data: Prisma.DirectorProfileCreateInput = {
       order: dto.order,
       beginYear: dto.beginYear,
@@ -87,6 +117,12 @@ export class DirectorProfilesService {
         /* swallow */
       }
     }
+
+    // If order is being changed, reorder other profiles
+    if (dto.order !== undefined && dto.order !== existing.order) {
+      await this.reorderProfiles(dto.order, id);
+    }
+
     const endYearFinal =
       dto.endYear === null || dto.endYear === undefined
         ? new Date().getFullYear()
