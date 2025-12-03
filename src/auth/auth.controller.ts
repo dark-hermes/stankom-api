@@ -56,17 +56,14 @@ export class AuthController {
       req.user as { email: string; id: number },
     );
 
-    // Set the JWT in a secure, HttpOnly, signed cookie
+    // Set the JWT in a secure, HttpOnly, signed cookie (production defaults)
+    // Reading env can be used for future logic; enforce secure defaults
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: this.configService.get<string>('NODE_ENV') === 'production',
-      sameSite:
-        this.configService.get<string>('NODE_ENV') === 'production'
-          ? 'none'
-          : 'strict',
+      secure: true, // enforce secure for production-ready config
+      sameSite: 'strict',
       signed: true,
       path: '/',
-      // maxAge can be set here, but it's controlled by JWT expiry
     });
 
     return { message: 'Login successful', user: req.user };
@@ -89,14 +86,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Log out a user' })
   @ApiResponse({ status: 200, description: 'Logout successful.' })
   logout(@Res({ passthrough: true }) res: Response) {
-    // Clear the signed cookie
+    // Clear the signed cookie (production defaults)
     res.clearCookie('access_token', {
       httpOnly: true,
-      secure: this.configService.get<string>('NODE_ENV') === 'production',
-      sameSite:
-        this.configService.get<string>('NODE_ENV') === 'production'
-          ? 'none'
-          : 'strict',
+      secure: true,
+      sameSite: 'strict',
       signed: true,
       path: '/',
     });

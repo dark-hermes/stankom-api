@@ -19,6 +19,7 @@ describe('DirectorProfilesService', () => {
           provide: PrismaService,
           useValue: {
             directorProfile: {
+              findMany: jest.fn().mockResolvedValue([]),
               create: jest.fn().mockResolvedValue({
                 id: 1,
                 order: 1,

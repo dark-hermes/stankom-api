@@ -1126,6 +1126,25 @@ Semua konten memiliki audit trail:
 - `createdAt`: Timestamp creation
 - `updatedAt`: Timestamp update
 
+#### Public Endpoint Data Sanitization
+
+**Sensitive Data Protection**: Untuk mencegah kebocoran kredensial, semua public endpoints (`/api/v1/public/*`) otomatis membersihkan data sensitif dari response:
+
+- **Password hashes**: Dihapus dari objek user (`createdBy`, `updatedBy`)
+- **Email addresses**: Dihapus dari objek user di public responses
+- **Preserved data**: User ID dan name tetap ditampilkan untuk attribution
+
+**Implementation**: 
+```typescript
+// src/common/utils/sanitize-user-data.ts
+export function sanitizeUserData<T>(data: T): T {
+  // Recursively removes password and email from user objects
+  // Applied to all GuestController responses
+}
+```
+
+**Protected endpoints** (authenticated admin access) tetap menerima data lengkap untuk keperluan audit dan administrasi.
+
 ### 4. Request Protection
 
 #### CORS (Cross-Origin Resource Sharing)

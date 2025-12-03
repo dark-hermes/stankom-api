@@ -18,6 +18,7 @@ import { AnnouncementsService } from '../announcements/announcements.service';
 import { Public } from '../common/decorators/public.decorator';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
+import { sanitizeUserData } from '../common/utils/sanitize-user-data';
 import { DirectorProfilesService } from '../director-profiles/director-profiles.service';
 import { FaqService } from '../faq/faq.service';
 import { GalleryService } from '../gallery/gallery.service';
@@ -68,7 +69,8 @@ export class GuestController {
       ...query,
       filter: 'status:published',
     };
-    return this.newsService.findAll(modifiedQuery, req);
+    const result = await this.newsService.findAll(modifiedQuery, req);
+    return sanitizeUserData(result);
   }
 
   @Get('news/slug/:slug')
@@ -81,7 +83,10 @@ export class GuestController {
     if (news.status !== 'published') {
       throw new NotFoundException('News not published');
     }
-    return { message: 'Berita berhasil diambil.', data: news };
+    return sanitizeUserData({
+      message: 'Berita berhasil diambil.',
+      data: news,
+    });
   }
 
   @Get('news/categories/:id/news')
@@ -104,7 +109,12 @@ export class GuestController {
       ...query,
       filter: 'status:published',
     };
-    return this.newsService.findAllByCategory(id, modifiedQuery, req);
+    const result = await this.newsService.findAllByCategory(
+      id,
+      modifiedQuery,
+      req,
+    );
+    return sanitizeUserData(result);
   }
 
   @Get('news/categories')
@@ -140,7 +150,10 @@ export class GuestController {
     if (news.status !== 'published') {
       throw new NotFoundException('News not published');
     }
-    return { message: 'Berita berhasil diambil.', data: news };
+    return sanitizeUserData({
+      message: 'Berita berhasil diambil.',
+      data: news,
+    });
   }
 
   // Announcements endpoints
@@ -155,7 +168,8 @@ export class GuestController {
     @Query() query: FilterSearchQueryDto,
     @Req() req: RequestWithBaseUrl,
   ) {
-    return this.announcementsService.findAll(query, req);
+    const result = await this.announcementsService.findAll(query, req);
+    return sanitizeUserData(result);
   }
 
   @Get('announcements/:id')
@@ -164,7 +178,10 @@ export class GuestController {
   @ApiResponse({ status: 200, description: 'Announcement details' })
   async getAnnouncementById(@Param('id', ParseIntPipe) id: number) {
     const announcement = await this.announcementsService.findOne(id);
-    return { message: 'Pengumuman berhasil diambil.', data: announcement };
+    return sanitizeUserData({
+      message: 'Pengumuman berhasil diambil.',
+      data: announcement,
+    });
   }
 
   // Gallery endpoints
@@ -203,7 +220,8 @@ export class GuestController {
     @Query() query: FilterSearchQueryDto,
     @Req() req: RequestWithBaseUrl,
   ) {
-    return this.faqService.findAll(query, req);
+    const result = await this.faqService.findAll(query, req);
+    return sanitizeUserData(result);
   }
 
   @Get('faq/:id')
@@ -212,7 +230,7 @@ export class GuestController {
   @ApiResponse({ status: 200, description: 'FAQ details' })
   async getFaqById(@Param('id', ParseIntPipe) id: number) {
     const faq = await this.faqService.findOne(id);
-    return { message: 'FAQ berhasil diambil.', data: faq };
+    return sanitizeUserData({ message: 'FAQ berhasil diambil.', data: faq });
   }
 
   // Hero section
@@ -275,7 +293,8 @@ export class GuestController {
     @Query() query: FilterSearchQueryDto,
     @Req() req: RequestWithBaseUrl,
   ) {
-    return this.servicesService.findAll(query, req);
+    const result = await this.servicesService.findAll(query, req);
+    return sanitizeUserData(result);
   }
 
   @Get('services/:id')
@@ -284,7 +303,10 @@ export class GuestController {
   @ApiResponse({ status: 200, description: 'Service details' })
   async getServiceById(@Param('id', ParseIntPipe) id: number) {
     const service = await this.servicesService.findOne(id);
-    return { message: 'Layanan berhasil diambil.', data: service };
+    return sanitizeUserData({
+      message: 'Layanan berhasil diambil.',
+      data: service,
+    });
   }
 
   // Social Media Posts
@@ -299,7 +321,8 @@ export class GuestController {
     @Query() query: FilterSearchQueryDto,
     @Req() req: RequestWithBaseUrl,
   ) {
-    return this.socialMediaPostsService.findAll(query, req);
+    const result = await this.socialMediaPostsService.findAll(query, req);
+    return sanitizeUserData(result);
   }
 
   @Get('social-media-posts/:id')
@@ -308,7 +331,10 @@ export class GuestController {
   @ApiResponse({ status: 200, description: 'Social media post details' })
   async getSocialMediaPostById(@Param('id', ParseIntPipe) id: number) {
     const post = await this.socialMediaPostsService.findOne(id);
-    return { message: 'Post media sosial berhasil diambil.', data: post };
+    return sanitizeUserData({
+      message: 'Post media sosial berhasil diambil.',
+      data: post,
+    });
   }
 
   // Social Medias

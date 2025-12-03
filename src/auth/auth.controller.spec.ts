@@ -97,7 +97,7 @@ describe('AuthController', () => {
         mockToken,
         expect.objectContaining({
           httpOnly: true,
-          secure: false,
+          secure: true,
           sameSite: 'strict',
           signed: true,
         }),
