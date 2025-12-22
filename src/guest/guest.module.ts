@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AnnouncementsModule } from '../announcements/announcements.module';
+import { ContactsModule } from '../contacts/contacts.module';
 import { DirectorProfilesModule } from '../director-profiles/director-profiles.module';
 import { FaqModule } from '../faq/faq.module';
 import { GalleryModule } from '../gallery/gallery.module';
@@ -13,7 +14,6 @@ import { SocialMediaPostsModule } from '../social-media-posts/social-media-posts
 import { SocialMediasModule } from '../social-medias/social-medias.module';
 import { StatisticsModule } from '../statistics/statistics.module';
 import { StructuresModule } from '../structures/structures.module';
-import { ContactsModule } from '../contacts/contacts.module';
 import { GuestController } from './guest.controller';
 
 @Module({

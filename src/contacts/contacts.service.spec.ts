@@ -8,7 +8,6 @@ const mockPrisma = {
     findUnique: jest.fn(),
     findMany: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn(),
     count: jest.fn(),
   },
 };

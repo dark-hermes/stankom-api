@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -25,7 +24,6 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
-import { SuccessResponseDto } from '../common/dto/success-response.dto';
 import { AuditInterceptor } from '../common/interceptors/audit.interceptor';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
 import { ContactsService } from './contacts.service';
@@ -107,21 +105,5 @@ export class ContactsController {
 
     const updated = await this.contactsService.update(id, dto);
     return { message: 'Contact berhasil diperbarui.', data: updated };
-  }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete contact' })
-  @ApiParam({ name: 'id', description: 'Contact ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Contact deleted',
-    type: SuccessResponseDto,
-  })
-  @HttpCode(HttpStatus.OK)
-  async remove(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<SuccessResponseDto> {
-    await this.contactsService.remove(id);
-    return { message: 'Contact berhasil dihapus.' };
   }
 }

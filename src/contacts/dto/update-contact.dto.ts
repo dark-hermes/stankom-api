@@ -1,16 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateContactDto {
-  @ApiProperty({
-    example: 'map_url',
-    description: 'Contact key',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  key?: string;
-
   @ApiProperty({
     example: 'https://example.com',
     description: 'Contact value',
@@ -22,5 +13,12 @@ export class UpdateContactDto {
   value?: string;
 
   // Auto-populated by audit interceptor
+  @ApiProperty({
+    example: 1,
+    description: 'ID of user who updated',
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
   updatedById?: number;
 }

@@ -113,4 +113,18 @@ describe('sanitizeUserData', () => {
     expect(result.createdAt).toBe('2024-01-01');
     expect(result.updatedAt).toBe('2024-01-02');
   });
+
+  it('preserves Date objects in plain objects', () => {
+    const d = new Date();
+    const input: { createdAt: Date } = { createdAt: d };
+    const out = sanitizeUserData(input);
+    expect((out as { createdAt: Date }).createdAt).toBe(d);
+  });
+
+  it('preserves Date objects inside arrays', () => {
+    const d = new Date();
+    const input: { createdAt: Date }[] = [{ createdAt: d }];
+    const out = sanitizeUserData(input);
+    expect((out as { createdAt: Date }[])[0].createdAt).toBe(d);
+  });
 });

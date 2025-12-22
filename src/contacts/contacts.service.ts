@@ -63,18 +63,12 @@ export class ContactsService {
     const existing = await this.prisma.contact.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Contact not found');
 
-    const { key, value } = dto;
+    const { value } = dto;
 
     const data: Prisma.ContactUpdateInput = {
-      ...(key !== undefined ? { key } : {}),
       ...(value !== undefined ? { value } : {}),
     };
 
     return this.prisma.contact.update({ where: { id }, data });
-  }
-
-  async remove(id: number) {
-    await this.prisma.contact.delete({ where: { id } });
-    return { deleted: true };
   }
 }

@@ -5,6 +5,9 @@
 export function sanitizeUserData<T>(data: T): T {
   if (data == null) return data;
 
+  // Preserve Date objects as-is to avoid turning them into empty objects
+  if (data instanceof Date) return data as unknown as T;
+
   if (Array.isArray(data)) {
     const mapped = (data as unknown[]).map((item) => sanitizeUserData(item));
     return mapped as unknown as T;
