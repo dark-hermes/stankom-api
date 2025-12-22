@@ -4,15 +4,19 @@ import type { Server } from 'http';
 import type { Response } from 'supertest';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('Guest / Public API (e2e)', () => {
   let app: INestApplication;
   let server: Server;
+  let prisma: PrismaService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
+
+    prisma = moduleFixture.get<PrismaService>(PrismaService);
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -242,6 +246,56 @@ describe('Guest / Public API (e2e)', () => {
           expect(body).toHaveProperty('meta');
           expect(Array.isArray(body.data)).toBe(true);
         });
+    });
+  });
+
+  // Regulations public endpoints
+  describe('/public/regulations (GET)', () => {
+    it('should return paginated regulations without auth', () => {
+      return request(server)
+        .get('/public/regulations')
+        .expect(200)
+        .expect((res: Response) => {
+          const body = res.body as unknown as { data: unknown; meta?: unknown };
+          expect(body).toHaveProperty('data');
+          expect(body).toHaveProperty('meta');
+          expect(Array.isArray(body.data)).toBe(true);
+        });
+    });
+  });
+
+  describe('/public/regulations/:id (GET)', () => {
+    it('should return regulation by id without auth', async () => {
+      // create a user and regulation directly in db
+      const userEmail = `e2e-reg-public-${Date.now()}@example.com`;
+      const createdUser = await prisma.user.upsert({
+        where: { email: userEmail },
+        create: {
+          name: 'E2E Reg Public',
+          email: userEmail,
+          password: 'password',
+        },
+        update: {},
+      });
+
+      const reg = await prisma.regulation.create({
+        data: {
+          title: 'Public Regulation',
+          description: 'Visible regulation',
+          attachment: null,
+          createdBy: { connect: { id: createdUser.id } },
+        },
+      });
+
+      const res = await request(server)
+        .get(`/public/regulations/${reg.id}`)
+        .expect(200);
+      const body = res.body as unknown as { message?: string; data?: unknown };
+      expect(body).toHaveProperty('message');
+      expect(body).toHaveProperty('data');
+
+      // cleanup
+      await prisma.regulation.delete({ where: { id: reg.id } });
     });
   });
 });

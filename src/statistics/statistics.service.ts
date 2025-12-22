@@ -95,7 +95,15 @@ export class StatisticsService {
       category: { connect: { id: categoryId } },
     } as Prisma.StatisticCreateInput;
 
-    return this.prisma.statistic.create({ data });
+    const created = await this.prisma.statistic.create({ data });
+
+    // touch category updatedAt
+    await this.prisma.statisticCategory.update({
+      where: { id: categoryId },
+      data: { updatedAt: new Date() },
+    });
+
+    return created;
   }
 
   async findAll(
@@ -152,12 +160,39 @@ export class StatisticsService {
         : {}),
     };
 
+    const oldCategoryId = existing.categoryId;
+
     await this.prisma.statistic.update({ where: { id }, data });
+
+    // touch affected categories
+    const idsToTouch = new Set<number>();
+    if (oldCategoryId) idsToTouch.add(oldCategoryId);
+    if (categoryId !== undefined && categoryId) idsToTouch.add(categoryId);
+
+    for (const cid of idsToTouch) {
+      await this.prisma.statisticCategory.update({
+        where: { id: cid },
+        data: { updatedAt: new Date() },
+      });
+    }
+
     return this.findOne(id);
   }
 
   async remove(id: number) {
+    const existing = await this.prisma.statistic.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Statistic not found');
+
     await this.prisma.statistic.delete({ where: { id } });
+
+    // touch category updatedAt
+    if (existing.categoryId) {
+      await this.prisma.statisticCategory.update({
+        where: { id: existing.categoryId },
+        data: { updatedAt: new Date() },
+      });
+    }
+
     return { deleted: true };
   }
 }

@@ -15,6 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AnnouncementsService } from '../announcements/announcements.service';
+import { RegulationsService } from '../regulations/regulations.service';
 import { Public } from '../common/decorators/public.decorator';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
@@ -50,6 +51,7 @@ export class GuestController {
     private readonly statisticsService: StatisticsService,
     private readonly structuresService: StructuresService,
     private readonly directorProfilesService: DirectorProfilesService,
+    private readonly regulationsService: RegulationsService,
   ) {}
 
   // News endpoints
@@ -399,6 +401,33 @@ export class GuestController {
     return this.statisticsService.findAll(query, req);
   }
 
+  // Regulations
+  @Get('regulations')
+  @ApiOperation({ summary: '[Public] Get all regulations' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'List of regulations' })
+  async getRegulations(
+    @Query() query: FilterSearchQueryDto,
+    @Req() req: RequestWithBaseUrl,
+  ) {
+    const result = await this.regulationsService.findAll(query, req);
+    return sanitizeUserData(result);
+  }
+
+  @Get('regulations/:id')
+  @ApiOperation({ summary: '[Public] Get regulation by ID' })
+  @ApiParam({ name: 'id', type: Number })
+  @ApiResponse({ status: 200, description: 'Regulation details' })
+  async getRegulationById(@Param('id', ParseIntPipe) id: number) {
+    const regulation = await this.regulationsService.findOne(id);
+    return sanitizeUserData({
+      message: 'Regulasi berhasil diambil.',
+      data: regulation,
+    });
+  }
   @Get('statistics/:id')
   @ApiOperation({ summary: '[Public] Get statistic by ID' })
   @ApiParam({ name: 'id', type: Number })

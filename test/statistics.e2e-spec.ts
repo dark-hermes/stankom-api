@@ -102,4 +102,66 @@ describe('Statistics CRUD (e2e)', () => {
       .delete(`/statistics/categories/${category.id}`)
       .expect(200);
   });
+
+  it('should update category.updatedAt when statistic is updated', async () => {
+    const userEmail = `e2e-stat-${Date.now()}@example.com`;
+    const createdUser = await prisma.user.upsert({
+      where: { email: userEmail },
+      create: { name: 'E2E Stat User', email: userEmail, password: 'password' },
+      update: {},
+    });
+
+    setMockUser({ id: createdUser.id, email: createdUser.email });
+
+    // Create category
+    const categoryRes = await request(app.getHttpServer())
+      .post('/statistics/categories')
+      .send({ name: `Cat ${Date.now()}` })
+      .expect(201);
+
+    const category = asApiResponse<StatisticCategory>(categoryRes).data;
+
+    // Create statistic under that category
+    const statRes = await request(app.getHttpServer())
+      .post('/statistics')
+      .send({ name: 'Satu', number: 1, categoryId: category.id })
+      .expect(201);
+
+    const stat = asApiResponse<Statistic>(statRes).data;
+
+    // Get category to read updatedAt
+    const beforeRes = await request(app.getHttpServer())
+      .get(`/statistics/categories/${category.id}`)
+      .expect(200);
+
+    const before = asApiResponse<StatisticCategory>(beforeRes).data;
+    const beforeUpdatedAt = new Date(before.updatedAt);
+
+    // Wait a bit to ensure timestamp changes
+    await new Promise((r) => setTimeout(r, 500));
+
+    // Update statistic
+    await request(app.getHttpServer())
+      .put(`/statistics/${stat.id}`)
+      .send({ number: 2 })
+      .expect(200);
+
+    // Get category again and check updatedAt changed
+    const afterRes = await request(app.getHttpServer())
+      .get(`/statistics/categories/${category.id}`)
+      .expect(200);
+
+    const after = asApiResponse<StatisticCategory>(afterRes).data;
+    const afterUpdatedAt = new Date(after.updatedAt);
+
+    expect(afterUpdatedAt.getTime()).toBeGreaterThan(beforeUpdatedAt.getTime());
+
+    // cleanup
+    await request(app.getHttpServer())
+      .delete(`/statistics/${stat.id}`)
+      .expect(200);
+    await request(app.getHttpServer())
+      .delete(`/statistics/categories/${category.id}`)
+      .expect(200);
+  });
 });

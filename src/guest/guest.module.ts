@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AnnouncementsModule } from '../announcements/announcements.module';
 import { DirectorProfilesModule } from '../director-profiles/director-profiles.module';
 import { FaqModule } from '../faq/faq.module';
+import { RegulationsModule } from '../regulations/regulations.module';
 import { GalleryModule } from '../gallery/gallery.module';
 import { HeroModule } from '../hero/hero.module';
 import { HistoriesModule } from '../histories/histories.module';
@@ -29,6 +30,7 @@ import { GuestController } from './guest.controller';
     StatisticsModule,
     StructuresModule,
     DirectorProfilesModule,
+    RegulationsModule,
   ],
   controllers: [GuestController],
 })
