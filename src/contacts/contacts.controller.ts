@@ -27,8 +27,10 @@ import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
 import { AuditInterceptor } from '../common/interceptors/audit.interceptor';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
 import { ContactsService } from './contacts.service';
+import { ContactListResponseDto } from './dto/contact-list-response.dto';
 import { ContactResponseDto } from './dto/contact-response.dto';
 import { CreateContactDto } from './dto/create-contact.dto';
+import { UpdateContactsByKeyDto } from './dto/update-contacts-by-key.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 
 @ApiTags('Contacts')
@@ -85,6 +87,24 @@ export class ContactsController {
   @ApiResponse({ status: HttpStatus.OK })
   findByKey(@Param('key') key: string) {
     return this.contactsService.findByKey(key);
+  }
+
+  @Put('by-key')
+  @ApiOperation({ summary: 'Update multiple contacts by key' })
+  @ApiBody({ type: UpdateContactsByKeyDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Contacts updated',
+    type: ContactListResponseDto,
+  })
+  async updateByKeys(
+    @Req() req: RequestWithBaseUrl,
+    @Body() dto: UpdateContactsByKeyDto,
+  ): Promise<ContactListResponseDto> {
+    if (req.user?.id) dto.updatedById = req.user.id;
+
+    const updated = await this.contactsService.updateByKeys(dto);
+    return { message: 'Contacts berhasil diperbarui.', data: updated };
   }
 
   @Put(':id')

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Contact, Prisma } from '@prisma/client';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
 import type { PaginatedResponse } from '../common/interfaces/pagination.interface';
@@ -10,6 +14,7 @@ import {
 } from '../common/utils/prisma-helpers';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateContactDto } from './dto/create-contact.dto';
+import { UpdateContactsByKeyDto } from './dto/update-contacts-by-key.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 
 @Injectable()
@@ -70,5 +75,44 @@ export class ContactsService {
     };
 
     return this.prisma.contact.update({ where: { id }, data });
+  }
+
+  async updateByKeys(dto: UpdateContactsByKeyDto): Promise<Contact[]> {
+    const keyValuePairs = Object.entries({
+      map_url: dto.map_url,
+      address: dto.address,
+      contact: dto.contact,
+    }).filter(([, value]) => value !== undefined);
+
+    if (!keyValuePairs.length)
+      throw new BadRequestException('No contact keys provided to update');
+
+    const keys = keyValuePairs.map(([key]) => key);
+    const existing = await this.prisma.contact.findMany({
+      where: { key: { in: keys } },
+    });
+
+    const missing = keys.filter(
+      (key) => !existing.some((contact) => contact.key === key),
+    );
+
+    if (missing.length)
+      throw new NotFoundException(
+        `Contact not found for keys: ${missing.join(', ')}`,
+      );
+
+    const baseUpdate: Prisma.ContactUpdateInput = {};
+
+    if (dto.updatedById !== undefined)
+      baseUpdate.updatedBy = { connect: { id: dto.updatedById } };
+
+    const transactions = keyValuePairs.map(([key, value]) =>
+      this.prisma.contact.update({
+        where: { key },
+        data: { ...baseUpdate, value },
+      }),
+    );
+
+    return this.prisma.$transaction(transactions);
   }
 }

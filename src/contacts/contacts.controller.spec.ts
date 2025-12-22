@@ -6,7 +6,7 @@ import { UpdateContactDto } from './dto/update-contact.dto';
 
 describe('ContactsController', () => {
   let controller: ContactsController;
-  let service: ContactsService;
+  let service: jest.Mocked<ContactsService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,7 +26,9 @@ describe('ContactsController', () => {
     }).compile();
 
     controller = module.get<ContactsController>(ContactsController);
-    service = module.get<ContactsService>(ContactsService);
+    service = module.get<ContactsService>(
+      ContactsService,
+    ) as jest.Mocked<ContactsService>;
   });
 
   it('should be defined', () => {
@@ -42,8 +44,10 @@ describe('ContactsController', () => {
       value: 'new value',
       updatedById: 42,
     };
-    const updateMock = (service as unknown as { update: jest.Mock }).update;
-    updateMock.mockResolvedValue(updated);
+    const updateMock = jest.spyOn(service, 'update');
+    updateMock.mockResolvedValue(
+      updated as unknown as Awaited<ReturnType<ContactsService['update']>>,
+    );
 
     const req = { user: { id: 42 } } as unknown as RequestWithBaseUrl;
     const res = await controller.update(req, 1, dto);
