@@ -43,6 +43,7 @@ model User {
   servicesUpdated         Service[]         @relation("ServiceUpdatedBy")
   regulationsUpdated      Regulation[]      @relation("RegulationUpdatedBy")
   regulations             Regulation[]
+  contacts                Contact[]
 }
 
 model HeroSection {
@@ -284,4 +285,15 @@ model SocialMediaPost {
   createdBy   User     @relation(fields: [createdById], references: [id])
   updatedById Int?
   updatedBy   User?    @relation("SocialMediaPostUpdatedBy", fields: [updatedById], references: [id])
+}
+
+model Contact {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String @db.Text
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedById Int?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
 }

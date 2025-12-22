@@ -263,6 +263,32 @@ async function main() {
     }));
     await prisma.socialMediaPost.createMany({ data: posts });
   }
+
+  // Contacts: ensure specified keys exist
+  const contactsToUpsert = [
+    {
+      key: 'map_url',
+      value:
+        'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.2136463017614!2d106.82161737576473!3d-6.235545061064351!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f30b4fa14779%3A0x8621100964c271ca!2sGedung%20Vokasi%20Kemnaker!5e0!3m2!1sen!2sid!4v1762206713386!5m2!1sen!2sid',
+    },
+    {
+      key: 'address',
+      value:
+        'Jl. Gatot Subroto No.44, RT.3/RW.2\n\nKuningan Bar., Kec. Mampang Prpt\n\nKota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12710',
+    },
+    {
+      key: 'contact',
+      value: 'Call Center Senin - Jumat (Hari Kerja)',
+    },
+  ];
+
+  for (const c of contactsToUpsert) {
+    await prisma.contact.upsert({
+      where: { key: c.key },
+      update: { value: c.value },
+      create: { key: c.key, value: c.value },
+    });
+  }
 }
 
 main()

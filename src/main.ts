@@ -59,26 +59,25 @@ async function bootstrap() {
   app.use(`/${uploadRoot}`, express.static(uploadsPath)); // backward compatibility
   app.use(`/api/${uploadRoot}`, express.static(uploadsPath)); // API-prefixed access
 
-  if (nodeEnv !== 'production') {
-    const config = new DocumentBuilder()
-      .setTitle('Stankom API Documentation')
-      .setDescription('API documentation for Stankom Landing Page')
-      .setVersion('1.0')
-      .addTag('api')
-      .addCookieAuth('access_token', {
-        type: 'http',
-        in: 'Header',
-        scheme: 'Bearer',
-        description:
-          'JWT Auth Token stored in an HttpOnly cookie (access_token)',
-      })
-      .build();
+  // if (nodeEnv !== 'production') {
+  const config = new DocumentBuilder()
+    .setTitle('Stankom API Documentation')
+    .setDescription('API documentation for Stankom Landing Page')
+    .setVersion('1.0')
+    .addTag('api')
+    .addCookieAuth('access_token', {
+      type: 'http',
+      in: 'Header',
+      scheme: 'Bearer',
+      description: 'JWT Auth Token stored in an HttpOnly cookie (access_token)',
+    })
+    .build();
 
-    const documentFactory = () => SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api-docs', app, documentFactory());
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, documentFactory());
 
-    logger.log(`API documentation available at /api-docs`);
-  }
+  logger.log(`API documentation available at /api-docs`);
+  // }
 
   await app.listen(port);
 

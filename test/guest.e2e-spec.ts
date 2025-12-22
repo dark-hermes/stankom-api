@@ -3,8 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import type { Server } from 'http';
 import type { Response } from 'supertest';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from './../src/app.module';
 
 describe('Guest / Public API (e2e)', () => {
   let app: INestApplication;
@@ -296,6 +296,34 @@ describe('Guest / Public API (e2e)', () => {
 
       // cleanup
       await prisma.regulation.delete({ where: { id: reg.id } });
+    });
+  });
+
+  describe('/public/contacts (GET)', () => {
+    it('should return paginated contacts without auth', () => {
+      return request(server)
+        .get('/public/contacts')
+        .expect(200)
+        .expect((res: Response) => {
+          const body = res.body as unknown as { data: unknown; meta?: unknown };
+          expect(body).toHaveProperty('data');
+          expect(body).toHaveProperty('meta');
+          expect(Array.isArray(body.data)).toBe(true);
+        });
+    });
+
+    it('should return contact by key without auth', async () => {
+      // ensure seeded contact exists (seed runs in global setup)
+      const res = await request(server)
+        .get('/public/contacts/key/map_url')
+        .expect(200);
+      const body = res.body as unknown as {
+        message?: string;
+        data?: { key?: string; value?: string };
+      };
+      expect(body).toHaveProperty('message');
+      expect(body).toHaveProperty('data');
+      expect(body.data?.key).toBe('map_url');
     });
   });
 });

@@ -22,6 +22,7 @@ import { StorageModule } from './storage/storage.module';
 import { StructuresModule } from './structures/structures.module';
 import { UsersModule } from './users/users.module';
 import { RegulationsModule } from './regulations/regulations.module';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { RegulationsModule } from './regulations/regulations.module';
     DirectorProfilesModule,
     HeroModule,
     RegulationsModule,
+    ContactsModule,
   ],
   controllers: [],
   providers: [],

@@ -15,7 +15,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AnnouncementsService } from '../announcements/announcements.service';
-import { RegulationsService } from '../regulations/regulations.service';
 import { Public } from '../common/decorators/public.decorator';
 import { FilterSearchQueryDto } from '../common/dto/filter-search-query.dto';
 import type { RequestWithBaseUrl } from '../common/interfaces/request-with-base-url.interface';
@@ -26,6 +25,8 @@ import { GalleryService } from '../gallery/gallery.service';
 import { HeroService } from '../hero/hero.service';
 import { HistoriesService } from '../histories/histories.service';
 import { NewsService } from '../news/news.service';
+import { RegulationsService } from '../regulations/regulations.service';
+import { ContactsService } from '../contacts/contacts.service';
 import { RolesResponsibilitiesService } from '../roles-responsibilities/roles-responsibilities.service';
 import { ServicesService } from '../services/services.service';
 import { SocialMediaPostsService } from '../social-media-posts/social-media-posts.service';
@@ -52,6 +53,7 @@ export class GuestController {
     private readonly structuresService: StructuresService,
     private readonly directorProfilesService: DirectorProfilesService,
     private readonly regulationsService: RegulationsService,
+    private readonly contactsService: ContactsService,
   ) {}
 
   // News endpoints
@@ -426,6 +428,34 @@ export class GuestController {
     return sanitizeUserData({
       message: 'Regulasi berhasil diambil.',
       data: regulation,
+    });
+  }
+
+  // Contacts public endpoints
+  @Get('contacts')
+  @ApiOperation({ summary: '[Public] Get all contacts' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'sortBy', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'List of contacts' })
+  async getContacts(
+    @Query() query: FilterSearchQueryDto,
+    @Req() req: RequestWithBaseUrl,
+  ) {
+    const result = await this.contactsService.findAll(query, req);
+    return sanitizeUserData(result);
+  }
+
+  @Get('contacts/key/:key')
+  @ApiOperation({ summary: '[Public] Get contact by key' })
+  @ApiParam({ name: 'key', type: String })
+  @ApiResponse({ status: 200, description: 'Contact details' })
+  async getContactByKey(@Param('key') key: string) {
+    const contact = await this.contactsService.findByKey(key);
+    return sanitizeUserData({
+      message: 'Kontak berhasil diambil.',
+      data: contact,
     });
   }
   @Get('statistics/:id')
