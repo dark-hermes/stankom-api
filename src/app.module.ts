@@ -21,6 +21,7 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { StorageModule } from './storage/storage.module';
 import { StructuresModule } from './structures/structures.module';
 import { UsersModule } from './users/users.module';
+import { RegulationsModule } from './regulations/regulations.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { UsersModule } from './users/users.module';
     StructuresModule,
     DirectorProfilesModule,
     HeroModule,
+    RegulationsModule,
   ],
   controllers: [],
   providers: [],

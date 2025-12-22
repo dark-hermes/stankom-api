@@ -41,6 +41,8 @@ model User {
   socialMediaPostsUpdated SocialMediaPost[] @relation("SocialMediaPostUpdatedBy")
   faqsUpdated             Faq[]             @relation("FaqUpdatedBy")
   servicesUpdated         Service[]         @relation("ServiceUpdatedBy")
+  regulationsUpdated      Regulation[]      @relation("RegulationUpdatedBy")
+  regulations             Regulation[]
 }
 
 model HeroSection {
@@ -188,6 +190,21 @@ model Announcement {
 
   updatedById Int?
   updatedBy   User? @relation("AnnouncementUpdatedBy", fields: [updatedById], references: [id])
+}
+
+model Regulation {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  attachment  String?  @db.Text // URL atau path ke file
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById Int
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  updatedById Int?
+  updatedBy   User? @relation("RegulationUpdatedBy", fields: [updatedById], references: [id])
 }
 
 model Service {

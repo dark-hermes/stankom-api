@@ -61,7 +61,7 @@ export class AuthController {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: true, // enforce secure for production-ready config
-      sameSite: 'strict',
+      sameSite: 'none',
       signed: true,
       path: '/',
     });
@@ -90,7 +90,7 @@ export class AuthController {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'none',
       signed: true,
       path: '/',
     });
